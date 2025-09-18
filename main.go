@@ -1,23 +1,12 @@
 package main
 
 import (
-	"regexp"
 	"log/slog"
 	"os"
 	"errors"
 
 	"github.com/joho/godotenv"
 )
-
-
-type KpiTracker struct {
-	Name string `json:"name"`
-	ColumnID int `json:"columnID"`
-	Variations []string `json:"variations"`
-	Regexps []*regexp.Regexp `json:"regexps"`
-	Found bool `json:"found"`
-	Sentences []string `json:"sentences"`
-}
 
 type apiConfig struct {
 	bearerTokenSmartsheet string

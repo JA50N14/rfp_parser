@@ -172,7 +172,6 @@ func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 					kpiResults[idx].Found = true
 				}
 			}
-
 		}
 	}
 	//FOR TESTING

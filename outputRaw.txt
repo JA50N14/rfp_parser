@@ -1,0 +1,148 @@
+
+SpheraCloud 
+–
+Professional Services Scope Definition 
+Prepared for: 
+Dexterra
+March 
+19,
+2024
+SpheraCloud Implementation
+Professional Services Scope Definition
+©
+2024 Sphera
+2
+Project Scope
+©
+2024 Sphera
+3
+Project Scope (Continued)
+©
+2024 Sphera
+4
+Project Scope (Continued)
+©
+2024 Sphera
+5
+Project Assumptions
+©
+2024 Sphera
+6
+Implementation and Configuration Services Estimate
+©
+2023 Sphera
+7
+Estimated Implementation Services Cost
+Historical Data Migration
+Total (+/
+-
+ 
+15%)
+$266,548          
+$  59,168
+$325,716
+$358,140
+$  79,464
+$437,604
+Services provided to implement the solutions defined in the Project Scope.
+Includes 12.5% services rate discount
+$USD
+ 
+ 
+$CD
+Disability Management & Modified Work Order Process
+©
+2024 Sphera
+8
+Limitations
+•
+Lost Wages calculation is not supported as part of the Lost Time periods table on the DMF.
+ 
+•
+“Chart Notes” functionality, where multiple sub
+-
+records can be added, is available in the application but not supported in PDF o
+utput.
+ 
+To 
+capture in both the application and in PDF output, specific text fields can be utilized on the DMF for notes.
+•
+Time period details for Modified Duties and Lost Time periods are not available in PDF output. Total Modified Duties days and
+ 
+to
+tal Lost Time 
+days are available in PDF output.
+•
+On the MWO, for the Duties list, a separate comment field for each value is not available assuming each Duty is a list value 
+for
+ 
+an overall 
+attribute of approved Duties.
+ 
+A single comment field for Duties overall, or a group of Duties could be utilized, but this comme
+nt field would 
+not be directly connected to the selected values inside the system.
+•
+Given the volume of data fields and form logic desired, it will be important to consider the implications this may have on th
+e f
+orm's 
+performance to maximize user experience. Every consideration should be made to formulate a design for the form(s) that minimi
+zes
+ 
+the 
+amount of processing that needs to be performed each time the form is opened and/or saved. This may require streamlining form 
+
+dy
+namics.
+Assumptions
+•
+The MWO would be created after the DMF data that feeds the MWO is finalized/locked down to prevent MWO data from becoming out
+ 
+of
+ 
+date after generation of the MWO.
+ 
+Or,
+ 
+the business approach would be to generate a new MWO if any DMF data changes. It is assumed 
+multiple MWO’s may be needed for a single DMF to support the case where an MWO is not approved and/or supporting data needs t
+o b
+e 
+changed.
+•
+The fields under the “Allowed LT section” are assumed to be manually entered data.
+ 
+Simple summation of a ~6 fields into one fie
+ld is 
+supported.
+Disability Management & Modified Work Order Process
+©
+2024 Sphera
+9
+Incident Form
+Injury Form
+Read only view of a handful of fields 
+from the Incident form. Location, Date 
+Occurred, etc.
+Injury Details
+Disability Details
+Restricted via permissions
+Modified Work Order Form
+MWO Details
+Add MWO 
+Accept/Reject
+Potential High level Form Design 
+Read only view of a handful of fields 
+from the Incident/Injury form. 
+Location, Date Occurred, Body Parts, 
+etc.
+Add Injury Form
+Next Steps
+©
+2024 Sphera
+10
+•
+Confirm alignment on project scope and 
+estimates. 
+•
+Draft Statement of Work

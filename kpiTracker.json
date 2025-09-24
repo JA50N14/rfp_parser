@@ -3,49 +3,49 @@
         "name": "Sustainable Development Goals (SDGs)",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 1,
-        "regexps": ["\bsustainable development goals\b", "\bsdg\b"],
+        "regexps": ["(?i)\\bsustainable development goals\\b", "(?i)\\bsustainability development goals\\b", "\\bSDG\\b"],
         "found": false
     },
     {
         "name": "Global Reporting Initiative (GRI)",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 2,
-        "regexps": ["\bglobal reporting initiative\b", "\bgri\b"],
+        "regexps": ["(?i)\\bglobal reporting initiative\\b", "\\bGRI\\b"],
         "found": false
     },
     {
         "name": "Task Force on Climate Related Financial Disclosures (TCFD)",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 3,
-        "regexps": ["\btask force on climate related financial disclosures\b", "\btcfd\b"],
+        "regexps": ["(?i)\\btask force on climate related financial disclosures\\b", "\\bTCFD\\b"],
         "found": false
     },
     {
         "name": "Canada's Net Zero Challenge",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 4,
-        "regexps": ["\bcanada's net zero challenge\b", "\bcanada net zero challenge\b"],
+        "regexps": ["(?i)\\bcanada's net zero challenge\\b", "(?i)\\bcanada net zero challenge\\b"],
         "found": false
     },
     {
         "name": "IFRS Sustainability Standards",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 5,
-        "regexps": ["\bifrs sustainability standards\b", "\bifrs\b"],
+        "regexps": ["(?i)\\bifrs sustainability standards\\b", "\\bIFRS\\b"],
         "found": false
     },
     {
         "name": "Corporate Sustainability Reporting Directive (CSRD)",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 6,
-        "regexps": ["\bcorporate sustainability reporting directive\b", "\bcsrd\b"],
+        "regexps": ["(?i)\\bcorporate sustainability reporting directive\\b", "\\bCSRD\\b"],
         "found": false
     },
     {
         "name": "GHG Protocol",
         "category": "Sustainabiity Frameworks Alignment",
         "columnID": 7,
-        "regexps": ["\bghg protocol\b"],
+        "regexps": ["(?i)\\bghg protocol\\b"],
         "found": false
     }
 ]

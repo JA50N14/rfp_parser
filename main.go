@@ -1,28 +1,26 @@
 package main
 
 import (
+	"errors"
 	"log/slog"
 	"os"
-	"errors"
+	"fmt"
 
 	"github.com/joho/godotenv"
 )
 
 type apiConfig struct {
 	bearerTokenSmartsheet string
-	clientSecretGraphApi string
-	clientIDGraphApi string
-	tenantIDGraphApi string
-	rfpPackageRootDir string
-	fileExtensions []string
-	logger *slog.Logger
+	clientSecretGraphApi  string
+	clientIDGraphApi      string
+	tenantIDGraphApi      string
+	rfpPackageRootDir     string
+	extMap                map[string]string
+	logger                *slog.Logger
 }
 
 const (
-	RfpPackageRootDir = `C:\Users\Macfa\RFP_Packages`
-	PdfExt = ".pdf"
-	DocExt = ".doc"
-	XlsExt = ".xls"
+	RfpPackageRootDir = `/home/jason_macfarlane/rfp_doc_library`
 )
 
 func main() {
@@ -31,19 +29,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = cfg.traverseRfpPackages()
+	smartsheetRows, err := cfg.traverseRfpPackages()
 	if err != nil {
 		os.Exit(1)
 	}
-
-
+	fmt.Println(smartsheetRows)
 
 }
 
-
 func newApiConfig() (*apiConfig, error) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	
+
 	err := godotenv.Load(".env")
 	if err != nil {
 		logger.Error(".env file unreadable", "error", err)
@@ -53,15 +49,23 @@ func newApiConfig() (*apiConfig, error) {
 	bearerTokenSmartsheet := os.Getenv("SMARTSHEET_TOKEN")
 	if bearerTokenSmartsheet == "" {
 		logger.Error("SMARTSHEET_TOKEN environment variable not set")
-		return nil, errors.New("")	
+		return nil, errors.New("")
 	}
 
-	cfg := &apiConfig {
+	extMap := map[string]string{
+		".doc":  ".doc",
+		".docx": ".docx",
+		".xls":  ".xls",
+		".xlsx": ".xlsx",
+		".pdf":  ".pdf",
+	}
+
+	cfg := &apiConfig{
 		bearerTokenSmartsheet: bearerTokenSmartsheet,
-		rfpPackageRootDir: RfpPackageRootDir,
-		fileExtensions: []string{PdfExt, DocExt, XlsExt},
-		logger: logger,
+		rfpPackageRootDir:     RfpPackageRootDir,
+		extMap:                extMap,
+		logger:                logger,
 	}
 
-	return cfg, nil 
+	return cfg, nil
 }

@@ -29,11 +29,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	smartsheetRows, err := cfg.traverseRfpPackages()
+	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {
 		os.Exit(1)
 	}
+
+	smartsheetRows, err := resultsToSmartsheetRows(allResults)
+
 	fmt.Println(smartsheetRows)
+	fmt.Println(allResults)
 
 }
 

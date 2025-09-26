@@ -24,6 +24,13 @@ type cleanupRule struct {
 	repl string
 }
 
+type cellData struct {
+	sheet string
+	row   int
+	col   int
+	value string
+}
+
 var cleanupRules = []cleanupRule{
 	{regexp.MustCompile(`\n[©•-]\n`), " "},
 	{regexp.MustCompile(`[ \t]+`), " "},
@@ -52,6 +59,8 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 		sheetsData, err = extractTextFromXlsx(data)
 	case xlsExt:
 		sheetsData, err = extractTextFromXls(data)
+	default:
+		return nil, fmt.Errorf("File cannot be parsed due to incorrect file type: %s", fileExt)
 	}
 
 	if err != nil {
@@ -63,10 +72,7 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 	}
 
 	if fileExt == xlsxExt || fileExt == xlsExt {
-		kpiResults, err = xlsxAndXlsParser(sheetsData, kpiResults)
-		if err != nil {
-			return nil, err
-		}
+		kpiResults = xlsxAndXlsParser(sheetsData, kpiResults)
 	}
 
 	return kpiResults, nil
@@ -148,7 +154,6 @@ func extractTextFromXls(data []byte) (map[string][][]string, error) {
 func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
-
 	//TEST CODE:
 	// os.WriteFile("output.txt", []byte(text), 0644)
 	// fmt.Println(strings.Join(textSlice, ","))
@@ -158,18 +163,16 @@ func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 	//-------------------
 
 	for _, item := range textSlice {
-		for idx, kpiResult := range kpiResults {
-			for i, re := range kpiResult.Regexps {
-				if kpiResult.Found == true {
-					continue
-				}
+		for i, kpiResult := range kpiResults {
+			for _, re := range kpiResult.Regexps {
 				if re.Match([]byte(item)) {
-					sentence := extractSentence(item, kpiResult.Regexps[i], sentenceRule)
+					sentence := extractSentence(item, re, sentenceRule)
 					if sentence == "" {
 						continue
 					}
-					kpiResults[idx].Sentence = sentence
-					kpiResults[idx].Found = true
+					kpiResults[i].Sentence = sentence
+					kpiResults[i].Found = true
+					break
 				}
 			}
 		}
@@ -210,6 +213,39 @@ func cleanText(text string) string {
 	return text
 }
 
-func xlsxAndXlsParser(sheetsData map[string][][]string, kpiResults []KpiResult) ([]KpiResult, error) {
-	return kpiResults, nil
+func xlsxAndXlsParser(sheetsData map[string][][]string, kpiResults []KpiResult) []KpiResult {
+	allData := flattenXlsxAndXlsData(sheetsData)
+	for _, cell := range allData {
+		for i, kpiResult := range kpiResults {
+			for _, re := range kpiResult.Regexps {
+				if re.Match([]byte(cell.value)) {
+					sentence := extractSentence(cell.value, re, sentenceRule)
+					if sentence == "" {
+						continue
+					}
+					kpiResults[i].Sentence = sentence
+					kpiResults[i].Found = true
+				}
+			}
+		}
+	}
+	return kpiResults
+}
+
+func flattenXlsxAndXlsData(sheetsData map[string][][]string) []cellData {
+	var allData []cellData
+	for sheetName, sheetContent := range sheetsData {
+		for rowNum, row := range sheetContent {
+			for colNum, cell := range row {
+				cd := cellData{
+					sheet: sheetName,
+					row:   rowNum + 1,
+					col:   colNum + 1,
+					value: cell,
+				}
+				allData = append(allData, cd)
+			}
+		}
+	}
+	return allData
 }

@@ -7,35 +7,33 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"path/filepath"
 )
 
 type KpiTrackerDef struct {
-	Name      string         `json:"name"`
-	Category  string         `json:"category"`
-	ColumnID  int            `json:"columnID"`
+	Name      string           `json:"name"`
+	Category  string           `json:"category"`
+	ColumnID  int              `json:"columnID"`
 	Regexps   []*regexp.Regexp `json:"-"`
-	RegexStrs []string       `json:"regexps"` //temporary holder
+	RegexStrs []string         `json:"regexps"` //temporary holder
 }
 
 type KpiResult struct {
 	*KpiTrackerDef
-	Found     bool
-	Sentence  string
+	Found    bool
+	Sentence string
 }
 
-type SmartsheetRow struct {
-	ToTop bool `json:"toTop"`
-	Cells []struct {
-		ColumnID int    `json:"columnID"`
-		Value    string `json:"value"`
-	} `json:"cells"`
+type PackageResult struct {
+	PackageName string
+	Results []KpiResult
 }
 
 const (
 	kpiTrackerDefPath = "./kpiTracker.json"
 )
 
-func (cfg *apiConfig) traverseRfpPackages() ([]SmartsheetRow, error) {
+func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 	rfpPackages, err := os.ReadDir(cfg.rfpPackageRootDir)
 	if err != nil {
 		cfg.logger.Error("Error reading RFP Packages in root directory", "Error", err)
@@ -54,7 +52,7 @@ func (cfg *apiConfig) traverseRfpPackages() ([]SmartsheetRow, error) {
 		return nil, err
 	}
 
-	smartsheetRows := []SmartsheetRow{}
+	var allResults []PackageResult
 
 	for _, rfpPackage := range rfpPackages {
 		absPath := path.Join(cfg.rfpPackageRootDir, rfpPackage.Name())
@@ -74,16 +72,17 @@ func (cfg *apiConfig) traverseRfpPackages() ([]SmartsheetRow, error) {
 			cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
 			continue
 		}
-		smartsheetRows, err = cfg.traverseRfpPackage(absPath, kpiTrackerDefs, smartsheetRows)
+		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
 		if err != nil {
 			cfg.logger.Error("Error parsing RFP Package", "Directory Name", rfpPackage.Name())
 			continue
 		}
+		allResults = append(allResults, packageResult)
 	}
-	return smartsheetRows, nil
+	return allResults, nil
 }
 
-func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []KpiTrackerDef, smartsheetRows []SmartsheetRow) ([]SmartsheetRow, error) {
+func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []KpiTrackerDef) (PackageResult, error) {
 	kpiResults := CreateKpiResultForRfpPackage(kpiTrackerDefs)
 	stack := []string{rfpPackage}
 	for len(stack) > 0 {
@@ -92,7 +91,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 		entries, err := os.ReadDir(current)
 		if err != nil {
 			cfg.logger.Error("Could not open RFP Package root or sub-directory", "Directory", rfpPackage, "Error", err)
-			return nil, err
+			return PackageResult{}, err
 		}
 
 		for _, entry := range entries {
@@ -109,29 +108,33 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 			absPath := path.Join(rfpPackage, entry.Name())
 
-			file, err := os.Open(absPath)
-			if err != nil {
-				cfg.logger.Error("Error opening file", "Filename", entry.Name(), "Error", err)
-				return nil, err
-			}
-			defer file.Close() //Will not close any files until for loop is complete
-
-			data, err := io.ReadAll(file)
+			data, err := readFileBytes(absPath)
 			if err != nil {
 				cfg.logger.Error("Error reading file.", "Filename", entry.Name(), "Error", err)
-				return nil, err
+				return PackageResult{}, err
 			}
 
 			kpiResults, err = processFile(data, ext, kpiResults)
 			if err != nil {
 				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Error", err)
-				return nil, err
+				return PackageResult{}, err
 			}
 		}
 	}
-	//func kpiResultsToSmartSheetRow(kpiResults []KpiResult, smartsheetRows []SmartsheetRow) ([]SmartsheetRow, error) {} - Build in rfp_smartsheet_post.go
-	// smartsheetRows, err := kpiResultsToSmartSheetRow(kpiResults, smartsheetRows)
-	return smartsheetRows, nil
+	packageResult := PackageResult{
+		PackageName: filepath.Dir(rfpPackage),
+		Results: kpiResults,
+	}
+	return packageResult, nil
+}
+
+func readFileBytes(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return io.ReadAll(file)
 }
 
 func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
@@ -192,7 +195,7 @@ func CreateKpiResultForRfpPackage(kpiTrackerDefs []KpiTrackerDef) []KpiResult {
 		kpiResults = append(kpiResults, KpiResult{
 			KpiTrackerDef: &kpiTrackerDefs[i],
 			Found:         false,
-			Sentence:     "",
+			Sentence:      "",
 		})
 	}
 	return kpiResults

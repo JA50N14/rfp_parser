@@ -14,34 +14,59 @@ type AddRowsRequest struct {
 	Rows  []Row `json:"rows"`
 }
 
+const (
+	colDateParsed = 1
+	colPackageName = 2
+	colKpiName = 3
+	colKpiCategory = 4
+	colKpiSentence = 5
+)
+
+
 func resultsToSmartsheetRows(allResults []PackageResult) (AddRowsRequest, error) {
 	smartsheetRows := AddRowsRequest {
 		ToTop: true,
 	}
 
 	for _, package := range allResults {
-		var row Row
 		for _, result := range package.Results {
-			cellPackageName := Cell {
-				ColumnId: 1,
-				Value: allResults.PackageName,
-			}
-			cellKpi := Cell {
-				ColumnId: result.ColumnID,
-				Value: result.Name
-			}
-			cellCategory := Cell {
-				ColumnId: result.
+			var row Row
+			
+			row := Row {
+				cellParseDate := Cell {
+				ColumnId: colDateParsed,
+				Value: package.DateParsed
+				},
+				cellPackageName := Cell {
+					ColumnId: colPackageName,
+					Value: package.PackageName,
+				},
+
+			cellKpiFound := Cell {
+				ColumnId: colKpiName,
+				Value: result.Name,
 			}
 
+			cellCategory := Cell {
+				ColumnId: colKpiCategory,
+				Value: result.Category,
+			}
+
+			cellKpiSentence := Cell {
+				ColumnId: colKpiSentence,
+				Value: result.Sentence,
+			}
+			}
+
+
+			
 		}
 	}
-
 }
 
 //create a AddRowsRequest struct
 //Loop through each PackageResult
-//Create a Row struct
-//Loop through each Result
-//create a Cell struct
-//Populate Cell with ColumnID & PackageName, Name, Category, Sentence
+	//Loop through each Result
+		//Create a Row struct
+		//create a Cell struct
+		//Populate Cell with ColumnID & PackageName, Name, Category, Sentence

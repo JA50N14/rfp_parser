@@ -8,6 +8,7 @@ import (
 	"path"
 	"regexp"
 	"path/filepath"
+	"time"
 )
 
 type KpiTrackerDef struct {
@@ -26,6 +27,7 @@ type KpiResult struct {
 
 type PackageResult struct {
 	PackageName string
+	DateParsed string
 	Results []KpiResult
 }
 
@@ -123,6 +125,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 	}
 	packageResult := PackageResult{
 		PackageName: filepath.Dir(rfpPackage),
+		DateParsed: time.Now().Format("2006-01-02"),
 		Results: kpiResults,
 	}
 	return packageResult, nil

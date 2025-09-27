@@ -2,7 +2,6 @@
     {
         "name": "Sustainable Development Goals (SDGs)",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 1,
         "regexps": [
             "(?i)\\bsustainable development goals\\b",
             "(?i)\\bsustainability development goals\\b",
@@ -13,7 +12,6 @@
     {
         "name": "Global Reporting Initiative (GRI)",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 2,
         "regexps": [
             "(?i)\\bglobal reporting initiative\\b",
             "\\bGRI\\b"
@@ -23,7 +21,6 @@
     {
         "name": "Task Force on Climate Related Financial Disclosures (TCFD)",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 3,
         "regexps": [
             "(?i)\\btask force on climate related financial disclosures\\b",
             "\\bTCFD\\b"
@@ -33,7 +30,6 @@
     {
         "name": "Canada's Net Zero Challenge",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 4,
         "regexps": [
             "(?i)\\bcanada's net zero challenge\\b",
             "(?i)\\bcanada net zero challenge\\b"
@@ -43,7 +39,6 @@
     {
         "name": "IFRS Sustainability Standards",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 5,
         "regexps": [
             "(?i)\\bifrs sustainability standards\\b",
             "\\bIFRS\\b"
@@ -53,7 +48,6 @@
     {
         "name": "Corporate Sustainability Reporting Directive (CSRD)",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 6,
         "regexps": [
             "(?i)\\bcorporate sustainability reporting directive\\b",
             "\\bCSRD\\b"
@@ -63,9 +57,398 @@
     {
         "name": "GHG Protocol",
         "category": "Sustainabiity Frameworks Alignment",
-        "columnID": 7,
         "regexps": [
             "(?i)\\bghg protocol\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "B Corp Certification",
+        "category": "3rd Party Frameworks Alignment",
+        "regexps": [
+            "(?i)\\bb corp certification\\b",
+            "\\bb corp\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "EcoVadis",
+        "category": "3rd Party Frameworks Alignment",
+        "regexps": [
+            "(?i)\\becovadis\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Carbon Disclosure Project (CDP)",
+        "category": "3rd Party Frameworks Alignment",
+        "regexps": [
+            "(?i)\\bcarbon disclosure project\\b",
+            "\\bCDP\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Science Based Targets (SBTi)",
+        "category": "3rd Party Frameworks Alignment",
+        "regexps": [
+            "(?i)\\bscience based target\\b",
+            "\\bSBTi\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "UN Global Compact",
+        "category": "Social Responsibility Framework Alignment",
+        "regexps": [
+            "(?i)\\bun global compact\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 9001 Quality",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 9001\\b",
+            "\\b9001\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 14001 Environment",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 14001\\b",
+            "\\b14001\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 45001 Health & Safety",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 45001\\b",
+            "\\b45001\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 26000 Social Responsibility",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 26000\\b",
+            "\\b26000\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 50001 Energy Management",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 50001\\b",
+            "\\b50001\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "ISO 22000 Food Safety Management",
+        "category": "Management System Standards Alignment",
+        "regexps": [
+            "(?i)\\biso 22000\\b",
+            "\\b22000\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Corporate social responsibility policy and program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bcorporate social responsibility policy\\b",
+            "(?i)\\bcorporate social responsibility program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Ethical procurement program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bethical procurement program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Child and Forced Labour risk assessment",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bchild and forced labour risk assessment\\b",
+            "(?i)\\bchild & forced labour risk assessment\\b",
+            "(?i)\\bchild & force labor risk assessment\\b",
+            "(?i)\\bchild & forced labor risk assessment\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Child and Forced Labour policy",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bchild and forced labour policy\\b",
+            "(?i)\\bchild & forced labour policy\\b",
+            "(?i)\\bchild and forced labor policy\\b",
+            "(?i)\\bchild & forced labor policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Sustainability Program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bsustainability program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Sustainable procurement program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bsustainability procurement program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Environmental management system/program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\benvironmental management system\\b",
+            "(?i)\\benvironmental management program\\b",
+            "(?i)\\benvironmental program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Quality program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bquality management system\\b",
+            "(?i)\\bquality management program\\b",
+            "(?i)\\bquality program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Health and safety program",
+        "category": "Programs",
+        "regexps": [
+            "(?i)\\bhealth and safety program\\b",
+            "(?i)\\bhealth & safety program\\b",
+            "(?i)\\bhse program\\b",
+            "(?i)\\behs program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Animal Welfare Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\banimal welfare policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Sustainable Seafood Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bsustainable seafood policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Global Sustainable Sourcing Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bglobal sustainable sourcing policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Food Quality Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bfood quality policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Responsible Sourcing Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bresponsible sourcing policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Supply Chain Integrity Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bsupply chain integrity policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Climate Healthy Menus",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bclimate healthy menu\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Environment Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\benvironment policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Food Waste Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bfood waste policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Deforestation Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bdeforestation policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Human Rights Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bhuman rights policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Business Integrity Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bbusiness integrity policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Health & Safety Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bhealth & safety policy\\b",
+            "(?i)\\bhealth and safety policy\\b",
+            "(?i)\\bhse policy\\b",
+            "(?i)\\behs policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Quality Policy",
+        "category": "Policies",
+        "regexps": [
+            "(?i)\\bquality policy\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Scope 1, 2 or 3 greenhouse gas baseline",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\bscope 1, 2, or 3 greenhouse gas baseline\\b", "(?i)\\bscope 1, 2 or 3 greenhouse gas baseline\\b", "(?i)\\bgreenhouse gas baseline\\b", "(?i)\\bscope 1, 2, or 3 baseline\\b", "(?i)\\bscope 1, 2 or 3 baseline\\b", "(?i)\\bscope baselines\\b", "(?i)\\bscope emission baselines\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Scope 1, 2 or 3 Reduction targets",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\bscope 1, 2, or 3 reduction targets\\b", "(?i)\\bscope 1, 2 or 3 reduction targets\\b", "(?i)\\bscope reduction targets\\b", "(?i)\\bscope 1, 2, or 3 targets\\b", "(?i)\\bscope 1, 2 or 3 targets\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Net zero commitments",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\bnet zero commitments\\b",
+            "(?i)\\bnet zero commitment\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Energy management policy & program",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\benergy management policy\\b",
+            "(?i)\\benergy management program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Water management policy & program",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\bwater management policy\\b",
+            "(?i)\\bwater management program\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Eco-friendly products",
+        "category": "Environmental Emissions Metrics",
+        "regexps": [
+            "(?i)\\beco-friendly product\\b",
+            "(?i)\\beco friendly product\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Diversity, equity and inclusion targets",
+        "category": "Social Metrics",
+        "regexps": [
+            "(?i)\\bdiversity, equity and inclusion targets\\b", "(?i)\\bdiversity, equity, and inclusion targets\\b", "(?i)\\bdiversity, equity & inclusion targets\\b", "(?i)\\bdiversity, equity, & inclusion targets\\b", "(?i)\\bdei targets\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Indigenous employment targets",
+        "category": "Social Metrics",
+        "regexps": [
+            "(?i)\\bindigenous employment target\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Indigenous procurement targets",
+        "category": "Social Metrics",
+        "regexps": [
+            "(?i)\\bindigenous procurement target\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Diverse supplier targets",
+        "category": "Social Metrics",
+        "regexps": [
+            "(?i)\\bdiverse supplier target\\b"
+        ],
+        "found": false
+    },
+    {
+        "name": "Local supplier targets",
+        "category": "Social Metrics",
+        "regexps": [
+            "(?i)\\blocal supplier target\\b"
         ],
         "found": false
     }

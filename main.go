@@ -4,13 +4,13 @@ import (
 	"errors"
 	"log/slog"
 	"os"
-	"fmt"
 
 	"github.com/joho/godotenv"
 )
 
 type apiConfig struct {
 	bearerTokenSmartsheet string
+	smartsheetUrl         string
 	clientSecretGraphApi  string
 	clientIDGraphApi      string
 	tenantIDGraphApi      string
@@ -34,10 +34,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	smartsheetRows, err := resultsToSmartsheetRows(allResults)
+	smartsheetRows := resultsToSmartsheetRows(allResults)
+	err = cfg.postRequestSmartsheets(smartsheetRows)
+	if err != nil {
+		os.Exit(1)
+	}
 
-	fmt.Println(smartsheetRows)
-	fmt.Println(allResults)
+	cfg.logger.Info("RFP Packages Successfully Parsed and Posted to Smartsheets")
+	os.Exit(0)
 
 }
 
@@ -56,6 +60,12 @@ func newApiConfig() (*apiConfig, error) {
 		return nil, errors.New("")
 	}
 
+	smartsheetUrl := os.Getenv("SMARTSHEET_URL")
+	if smartsheetUrl == "" {
+		logger.Error("SMARTSHEET_URL environment variable not set")
+		return nil, errors.New("")
+	}
+
 	extMap := map[string]string{
 		".doc":  ".doc",
 		".docx": ".docx",
@@ -66,6 +76,7 @@ func newApiConfig() (*apiConfig, error) {
 
 	cfg := &apiConfig{
 		bearerTokenSmartsheet: bearerTokenSmartsheet,
+		smartsheetUrl:         smartsheetUrl,
 		rfpPackageRootDir:     RfpPackageRootDir,
 		extMap:                extMap,
 		logger:                logger,

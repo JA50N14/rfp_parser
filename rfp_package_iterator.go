@@ -14,7 +14,6 @@ import (
 type KpiTrackerDef struct {
 	Name      string           `json:"name"`
 	Category  string           `json:"category"`
-	ColumnID  int              `json:"columnID"`
 	Regexps   []*regexp.Regexp `json:"-"`
 	RegexStrs []string         `json:"regexps"` //temporary holder
 }

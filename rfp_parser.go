@@ -74,7 +74,7 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 	if fileExt == xlsxExt || fileExt == xlsExt {
 		kpiResults = xlsxAndXlsParser(sheetsData, kpiResults)
 	}
-
+	
 	return kpiResults, nil
 }
 
@@ -154,13 +154,6 @@ func extractTextFromXls(data []byte) (map[string][][]string, error) {
 func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
-	//TEST CODE:
-	// os.WriteFile("output.txt", []byte(text), 0644)
-	// fmt.Println(strings.Join(textSlice, ","))
-	// fmt.Println("Single Element in textSlice:")
-	// fmt.Println(textSlice[3])
-	// fmt.Println(len(textSlice))
-	//-------------------
 
 	for _, item := range textSlice {
 		for i, kpiResult := range kpiResults {
@@ -177,11 +170,8 @@ func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 			}
 		}
 	}
-	//FOR TESTING
-	for _, kpiResult := range kpiResults {
-		fmt.Printf(">kpiResults - Name: %v / Found: %v / Sentence: %s\n", kpiResult.Name, kpiResult.Found, kpiResult.Sentence)
-	}
-	//-------------
+
+	kpiResults = removeKpiResultsNotFound(kpiResults)
 	return kpiResults
 }
 
@@ -229,6 +219,7 @@ func xlsxAndXlsParser(sheetsData map[string][][]string, kpiResults []KpiResult) 
 			}
 		}
 	}
+	kpiResults = removeKpiResultsNotFound(kpiResults)
 	return kpiResults
 }
 
@@ -248,4 +239,16 @@ func flattenXlsxAndXlsData(sheetsData map[string][][]string) []cellData {
 		}
 	}
 	return allData
+}
+
+
+
+func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
+	var kpiResultsFound []KpiResult
+	for _, result := range kpiResults {
+		if result.Found == true {
+			kpiResultsFound = append(kpiResultsFound, result) 
+		}
+	}
+	return kpiResultsFound
 }

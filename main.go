@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -31,6 +32,7 @@ func main() {
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {
+		fmt.Printf("EXITING PROGRAM\n")
 		os.Exit(1)
 	}
 
@@ -42,7 +44,6 @@ func main() {
 
 	cfg.logger.Info("RFP Packages Successfully Parsed and Posted to Smartsheets")
 	os.Exit(0)
-
 }
 
 func newApiConfig() (*apiConfig, error) {

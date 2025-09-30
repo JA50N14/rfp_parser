@@ -117,7 +117,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 			kpiResults, err = processFile(data, ext, kpiResults)
 			if err != nil {
-				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Error", err)
+				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Package", rfpPackage, "Error", err)
 				return PackageResult{}, err
 			}
 		}
@@ -127,6 +127,8 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 		DateParsed: time.Now().Format("2006-01-02"),
 		Results: kpiResults,
 	}
+
+	
 	return packageResult, nil
 }
 

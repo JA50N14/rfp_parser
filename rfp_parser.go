@@ -60,11 +60,11 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 	case xlsExt:
 		sheetsData, err = extractTextFromXls(data)
 	default:
-		return nil, fmt.Errorf("File cannot be parsed due to incorrect file type: %s", fileExt)
+		return kpiResults, fmt.Errorf("File cannot be parsed due to incorrect file type: %s", fileExt)
 	}
 
-	if err != nil {
-		return nil, err
+	if err != nil || (text == "" && len(sheetsData) == 0) {
+		return kpiResults, err
 	}
 
 	if fileExt == pdfExt || fileExt == docxExt {
@@ -74,7 +74,7 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 	if fileExt == xlsxExt || fileExt == xlsExt {
 		kpiResults = xlsxAndXlsParser(sheetsData, kpiResults)
 	}
-	
+
 	return kpiResults, nil
 }
 
@@ -83,18 +83,30 @@ func extractTextFromPdf(data []byte) (string, error) {
 
 	pdfReader, err := pdf.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
-		return "", err
+		if strings.Contains(err.Error(), "encrypted PDF") {
+			return "", fmt.Errorf("skipping encrypted PDF: %w", err)
+		}
+		return "", fmt.Errorf("skipping due to failure creating PDF reader: %w", err)
+	}
+
+	b, err := pdfReader.GetPlainText()
+	if err != nil {
+		if strings.Contains(err.Error(), "unexpected") {
+			return "", fmt.Errorf("skipping due to unexpected characters in PDF: %w", err)
+		}
+		if strings.Contains(err.Error(), "invalid header") {
+			return "", fmt.Errorf("skipping due to invalid compressed stream in PDF: %w", err)
+		}
+		return "", fmt.Errorf("skipping due to unable to get text from PDF: %w", err)
 	}
 
 	var buf bytes.Buffer
-	b, err := pdfReader.GetPlainText()
+	_, err = buf.ReadFrom(b)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("skipping due to failure reading PDF text stream: %w", err)
 	}
 
-	buf.ReadFrom(b)
-	text := buf.String()
-	return text, nil
+	return buf.String(), nil
 }
 
 func extractTextFromDocx(data []byte) (string, error) {
@@ -241,13 +253,11 @@ func flattenXlsxAndXlsData(sheetsData map[string][][]string) []cellData {
 	return allData
 }
 
-
-
 func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 	var kpiResultsFound []KpiResult
 	for _, result := range kpiResults {
 		if result.Found == true {
-			kpiResultsFound = append(kpiResultsFound, result) 
+			kpiResultsFound = append(kpiResultsFound, result)
 		}
 	}
 	return kpiResultsFound

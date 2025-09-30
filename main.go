@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"runtime"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -25,6 +27,17 @@ const (
 )
 
 func main() {
+
+	go func() {
+		for {
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+			fmt.Printf("MEMORY STATS:\n")
+			fmt.Println(m.Alloc/1024/1024, "MB")
+			time.Sleep(5 * time.Second)
+		}
+	}()
+
 	cfg, err := newApiConfig()
 	if err != nil {
 		os.Exit(1)

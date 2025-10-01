@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"os"
 	"path"
-	"regexp"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -26,8 +25,8 @@ type KpiResult struct {
 
 type PackageResult struct {
 	PackageName string
-	DateParsed string
-	Results []KpiResult
+	DateParsed  string
+	Results     []KpiResult
 }
 
 const (
@@ -109,13 +108,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 			absPath := path.Join(rfpPackage, entry.Name())
 
-			data, err := readFileBytes(absPath)
-			if err != nil {
-				cfg.logger.Error("Error reading file.", "Filename", entry.Name(), "Error", err)
-				// return PackageResult{}, err
-			}
-
-			kpiResults, err = processFile(data, ext, kpiResults)
+			kpiResults, err = processFile(absPath, ext, kpiResults)
 			if err != nil {
 				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Package", rfpPackage, "Error", err)
 				// return PackageResult{}, err
@@ -124,19 +117,10 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 	}
 	packageResult := PackageResult{
 		PackageName: filepath.Dir(rfpPackage),
-		DateParsed: time.Now().Format("2006-01-02"),
-		Results: kpiResults,
+		DateParsed:  time.Now().Format("2006-01-02"),
+		Results:     kpiResults,
 	}
 	return packageResult, nil
-}
-
-func readFileBytes(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	return io.ReadAll(file)
 }
 
 func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -45,20 +46,20 @@ var cleanupRules = []cleanupRule{
 
 var sentenceRule = regexp.MustCompile(`\. [A-Z]`)
 
-func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResult, error) {
+func processFile(filePath string, fileExt string, kpiResults []KpiResult) ([]KpiResult, error) {
 	var text string
 	sheetsData := make(map[string][][]string)
 	var err error
 
 	switch fileExt {
 	case pdfExt:
-		text, err = extractTextFromPdf(data)
+		text, err = extractTextFromPdf(filePath)
 	case docxExt:
-		text, err = extractTextFromDocx(data)
+		text, err = extractTextFromDocx(filePath)
 	case xlsxExt:
-		sheetsData, err = extractTextFromXlsx(data)
+		sheetsData, err = extractTextFromXlsx(filePath)
 	case xlsExt:
-		sheetsData, err = extractTextFromXls(data)
+		sheetsData, err = extractTextFromXls(filePath)
 	default:
 		return kpiResults, fmt.Errorf("File cannot be parsed due to incorrect file type: %s", fileExt)
 	}
@@ -78,18 +79,17 @@ func processFile(data []byte, fileExt string, kpiResults []KpiResult) ([]KpiResu
 	return kpiResults, nil
 }
 
-func extractTextFromPdf(data []byte) (string, error) {
+func extractTextFromPdf(filePath string) (string, error) {
 	pdf.DebugOn = true
 
-	pdfReader, err := pdf.NewReader(bytes.NewReader(data), int64(len(data)))
+	f, r, err := pdf.Open(filePath)
 	if err != nil {
-		if strings.Contains(err.Error(), "encrypted PDF") {
-			return "", fmt.Errorf("skipping encrypted PDF: %w", err)
-		}
-		return "", fmt.Errorf("skipping due to failure creating PDF reader: %w", err)
+		return "", fmt.Errorf("Could not open PDF: %w", err)
 	}
+	defer f.Close()
 
-	b, err := pdfReader.GetPlainText()
+	var buff bytes.Buffer
+	b, err := r.GetPlainText()
 	if err != nil {
 		if strings.Contains(err.Error(), "unexpected") {
 			return "", fmt.Errorf("skipping due to unexpected characters in PDF: %w", err)
@@ -100,33 +100,39 @@ func extractTextFromPdf(data []byte) (string, error) {
 		return "", fmt.Errorf("skipping due to unable to get text from PDF: %w", err)
 	}
 
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(b)
-	if err != nil {
-		return "", fmt.Errorf("skipping due to failure reading PDF text stream: %w", err)
-	}
-
-	return buf.String(), nil
+	buff.ReadFrom(b)
+	return buff.String(), nil
 }
 
-func extractTextFromDocx(data []byte) (string, error) {
-	text, _, err := docconv.ConvertDocx(bytes.NewReader(data))
+func extractTextFromDocx(filePath string) (string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("Could not open docx: %w", err)
+	}
+	defer f.Close()
+
+	text, _, err := docconv.ConvertDocx(f)
 	if err != nil {
 		return "", err
 	}
 	return text, nil
 }
 
-func extractTextFromXlsx(data []byte) (map[string][][]string, error) {
-	file, err := excelize.OpenReader(bytes.NewReader(data))
+func extractTextFromXlsx(filePath string) (map[string][][]string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not open xlsx: %w", err)
+	}
+	defer f.Close()
+
+	wb, err := excelize.OpenReader(f)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
 	sheetsData := make(map[string][][]string)
-	for _, sheetName := range file.GetSheetList() {
-		rows, err := file.GetRows(sheetName)
+	for _, sheetName := range wb.GetSheetList() {
+		rows, err := wb.GetRows(sheetName)
 		if err != nil {
 			return nil, err
 		}
@@ -135,16 +141,21 @@ func extractTextFromXlsx(data []byte) (map[string][][]string, error) {
 	return sheetsData, nil
 }
 
-func extractTextFromXls(data []byte) (map[string][][]string, error) {
-	file, err := xls.OpenReader(bytes.NewReader(data), "utf-8")
+func extractTextFromXls(filePath string) (map[string][][]string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not open xls: %w", err)
+	}
+
+	wb, err := xls.OpenReader(f, "utf-8")
 	if err != nil {
 		return nil, err
 	}
 
 	sheetsData := make(map[string][][]string)
 
-	for i := 0; 1 < int(file.NumSheets()); i++ {
-		sheet := file.GetSheet(i)
+	for i := 0; 1 < int(wb.NumSheets()); i++ {
+		sheet := wb.GetSheet(i)
 		if sheet == nil {
 			continue
 		}

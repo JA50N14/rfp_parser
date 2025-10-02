@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,13 +8,12 @@ import (
 
 	"code.sajari.com/docconv"
 	"github.com/extrame/xls"
-	"github.com/ledongthuc/pdf"
 	"github.com/xuri/excelize/v2"
 )
 
 const (
-	pdfExt  = ".pdf"
 	docxExt = ".docx"
+	docExt  = ".doc"
 	xlsxExt = ".xlsx"
 	xlsExt  = ".xls"
 )
@@ -48,72 +46,61 @@ var sentenceRule = regexp.MustCompile(`\. [A-Z]`)
 
 func processFile(filePath string, fileExt string, kpiResults []KpiResult) ([]KpiResult, error) {
 	var text string
-	sheetsData := make(map[string][][]string)
+	wbData := make(map[string][][]string)
 	var err error
 
 	switch fileExt {
-	case pdfExt:
-		text, err = extractTextFromPdf(filePath)
 	case docxExt:
 		text, err = extractTextFromDocx(filePath)
+	case docExt:
+		text, err = extractTextFromDoc(filePath)
 	case xlsxExt:
-		sheetsData, err = extractTextFromXlsx(filePath)
+		wbData, err = extractTextFromXlsx(filePath)
 	case xlsExt:
-		sheetsData, err = extractTextFromXls(filePath)
+		wbData, err = extractTextFromXls(filePath)
 	default:
 		return kpiResults, fmt.Errorf("File cannot be parsed due to incorrect file type: %s", fileExt)
 	}
 
-	if err != nil || (text == "" && len(sheetsData) == 0) {
+	if err != nil || (text == "" && len(wbData) == 0) {
 		return kpiResults, err
 	}
 
-	if fileExt == pdfExt || fileExt == docxExt {
-		kpiResults = pdfAndDocxParser(text, kpiResults)
+	if fileExt == docxExt || fileExt == docExt {
+		kpiResults = textParser(text, kpiResults)
 	}
 
 	if fileExt == xlsxExt || fileExt == xlsExt {
-		kpiResults = xlsxAndXlsParser(sheetsData, kpiResults)
+		kpiResults = xlsxAndXlsParser(wbData, kpiResults)
 	}
 
 	return kpiResults, nil
 }
 
-func extractTextFromPdf(filePath string) (string, error) {
-	pdf.DebugOn = true
-
-	f, r, err := pdf.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("Could not open PDF: %w", err)
-	}
-	defer f.Close()
-
-	var buff bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		if strings.Contains(err.Error(), "unexpected") {
-			return "", fmt.Errorf("skipping due to unexpected characters in PDF: %w", err)
-		}
-		if strings.Contains(err.Error(), "invalid header") {
-			return "", fmt.Errorf("skipping due to invalid compressed stream in PDF: %w", err)
-		}
-		return "", fmt.Errorf("skipping due to unable to get text from PDF: %w", err)
-	}
-
-	buff.ReadFrom(b)
-	return buff.String(), nil
-}
-
 func extractTextFromDocx(filePath string) (string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return "", fmt.Errorf("Could not open docx: %w", err)
+		return "", fmt.Errorf("Error opening .docx file: %w", err)
 	}
 	defer f.Close()
 
 	text, _, err := docconv.ConvertDocx(f)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Error parsing .docx file: %w", err)
+	}
+	return text, nil
+}
+
+func extractTextFromDoc(filePath string) (string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("Error opening .doc file: %w", err)
+	}
+	defer f.Close()
+
+	text, _, err := docconv.ConvertDoc(f)
+	if err != nil {
+		return "", fmt.Errorf("Error parsing .doc file: %w", err)
 	}
 	return text, nil
 }
@@ -121,39 +108,39 @@ func extractTextFromDocx(filePath string) (string, error) {
 func extractTextFromXlsx(filePath string) (map[string][][]string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Could not open xlsx: %w", err)
+		return nil, fmt.Errorf("Error opening .xlsx file: %w", err)
 	}
 	defer f.Close()
 
 	wb, err := excelize.OpenReader(f)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error opening .xlsx reader: %w", err)
 	}
 
-	sheetsData := make(map[string][][]string)
+	wbData := make(map[string][][]string)
 	for _, sheetName := range wb.GetSheetList() {
 		rows, err := wb.GetRows(sheetName)
 		if err != nil {
 			return nil, err
 		}
-		sheetsData[sheetName] = rows
+		wbData[sheetName] = rows
 	}
-	return sheetsData, nil
+	return wbData, nil
 }
 
 func extractTextFromXls(filePath string) (map[string][][]string, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Could not open xls: %w", err)
+		return nil, fmt.Errorf("Error opening .xls file: %w", err)
 	}
+	defer f.Close()
 
 	wb, err := xls.OpenReader(f, "utf-8")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error opening .xls reader: %w", err)
 	}
 
-	sheetsData := make(map[string][][]string)
-
+	wbData := make(map[string][][]string)
 	for i := 0; 1 < int(wb.NumSheets()); i++ {
 		sheet := wb.GetSheet(i)
 		if sheet == nil {
@@ -169,12 +156,12 @@ func extractTextFromXls(filePath string) (map[string][][]string, error) {
 			}
 			sheetRows = append(sheetRows, rowCells)
 		}
-		sheetsData[sheet.Name] = sheetRows
+		wbData[sheet.Name] = sheetRows
 	}
-	return sheetsData, nil
+	return wbData, nil
 }
 
-func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
+func textParser(text string, kpiResults []KpiResult) []KpiResult {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
 
@@ -198,6 +185,13 @@ func pdfAndDocxParser(text string, kpiResults []KpiResult) []KpiResult {
 	return kpiResults
 }
 
+func cleanText(text string) string {
+	for _, rule := range cleanupRules {
+		text = rule.re.ReplaceAllString(text, rule.repl)
+	}
+	return text
+}
+
 func extractSentence(text string, target *regexp.Regexp, boundary *regexp.Regexp) string {
 	targetLoc := target.FindIndex([]byte(text))
 	if targetLoc == nil {
@@ -219,15 +213,8 @@ func extractSentence(text string, target *regexp.Regexp, boundary *regexp.Regexp
 	return text[leftIdx:rightIdx]
 }
 
-func cleanText(text string) string {
-	for _, rule := range cleanupRules {
-		text = rule.re.ReplaceAllString(text, rule.repl)
-	}
-	return text
-}
-
-func xlsxAndXlsParser(sheetsData map[string][][]string, kpiResults []KpiResult) []KpiResult {
-	allData := flattenXlsxAndXlsData(sheetsData)
+func xlsxAndXlsParser(wbData map[string][][]string, kpiResults []KpiResult) []KpiResult {
+	allData := flattenXlsxAndXlsData(wbData)
 	for _, cell := range allData {
 		for i, kpiResult := range kpiResults {
 			for _, re := range kpiResult.Regexps {
@@ -246,9 +233,9 @@ func xlsxAndXlsParser(sheetsData map[string][][]string, kpiResults []KpiResult) 
 	return kpiResults
 }
 
-func flattenXlsxAndXlsData(sheetsData map[string][][]string) []cellData {
+func flattenXlsxAndXlsData(wbData map[string][][]string) []cellData {
 	var allData []cellData
-	for sheetName, sheetContent := range sheetsData {
+	for sheetName, sheetContent := range wbData {
 		for rowNum, row := range sheetContent {
 			for colNum, cell := range row {
 				cd := cellData{
@@ -272,4 +259,5 @@ func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 		}
 	}
 	return kpiResultsFound
+
 }

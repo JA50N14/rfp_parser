@@ -52,8 +52,8 @@ func processFile(filePath string, fileExt string, kpiResults []KpiResult) ([]Kpi
 	switch fileExt {
 	case docxExt:
 		text, err = extractTextFromDocx(filePath)
-	case docExt:
-		text, err = extractTextFromDoc(filePath)
+	// case docExt:
+	// 	text, err = extractTextFromDoc(filePath)
 	case xlsxExt:
 		wbData, err = extractTextFromXlsx(filePath)
 	case xlsExt:
@@ -91,19 +91,19 @@ func extractTextFromDocx(filePath string) (string, error) {
 	return text, nil
 }
 
-func extractTextFromDoc(filePath string) (string, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("Error opening .doc file: %w", err)
-	}
-	defer f.Close()
+// func extractTextFromDoc(filePath string) (string, error) {
+// 	f, err := os.Open(filePath)
+// 	if err != nil {
+// 		return "", fmt.Errorf("Error opening .doc file: %w", err)
+// 	}
+// 	defer f.Close()
 
-	text, _, err := docconv.ConvertDoc(f)
-	if err != nil {
-		return "", fmt.Errorf("Error parsing .doc file: %w", err)
-	}
-	return text, nil
-}
+// 	text, _, err := docconv.ConvertDoc(f)
+// 	if err != nil {
+// 		return "", fmt.Errorf("Error parsing .doc file: %w", err)
+// 	}
+// 	return text, nil
+// }
 
 func extractTextFromXlsx(filePath string) (map[string][][]string, error) {
 	f, err := os.Open(filePath)

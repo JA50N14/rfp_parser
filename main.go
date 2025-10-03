@@ -32,17 +32,19 @@ func main() {
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {
-		fmt.Printf("EXITING PROGRAM\n")
+		fmt.Printf("EXITING PROGRAM: func traverseRfpPackages failed\n")
 		os.Exit(1)
 	}
 
 	smartsheetRows := resultsToSmartsheetRows(allResults)
+
 	err = cfg.postRequestSmartsheets(smartsheetRows)
 	if err != nil {
+		fmt.Printf("EXITING PROGRAM: func postRequestSmartsheets failed\n")
 		os.Exit(1)
 	}
 
-	cfg.logger.Info("RFP Packages Successfully Parsed and Posted to Smartsheets")
+	cfg.logger.Info("RFP Packages successfully parsed and posted to Smartsheets")
 	os.Exit(0)
 }
 
@@ -146,5 +148,3 @@ func newApiConfig() (*apiConfig, error) {
 //Move RFP Package data structure into a struct that aligns with the Smartsheet API
 //Encode to JSON and POST to Smartsheets
 //If POST to Smartsheets 200, POST to Graph API to change "Parsed" to "true" for all RFP Packages that were processed
-
-

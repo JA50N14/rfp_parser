@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -72,6 +73,7 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 			cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
 			continue
 		}
+
 		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
 		if err != nil {
 			cfg.logger.Error("Error parsing RFP Package", "Directory Name", rfpPackage.Name())
@@ -90,8 +92,8 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 		stack = stack[:len(stack)-1]
 		entries, err := os.ReadDir(current)
 		if err != nil {
-			cfg.logger.Error("Could not open RFP Package root or sub-directory", "Directory", rfpPackage, "Error", err)
-			// return PackageResult{}, err
+			cfg.logger.Error("Could not open RFP Package root directory or sub-directory", "Directory", rfpPackage, "Error", err)
+			return PackageResult{}, err
 		}
 
 		for _, entry := range entries {
@@ -111,7 +113,6 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 			kpiResults, err = processFile(absPath, ext, kpiResults)
 			if err != nil {
 				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Package", rfpPackage, "Error", err)
-				// return PackageResult{}, err
 			}
 		}
 	}
@@ -126,7 +127,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
 	rfpPackage, err := os.ReadDir(rfpRootDir)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("Could not open RFP Package: %w", err)
 	}
 	for _, item := range rfpPackage {
 		if !item.IsDir() && item.Name() == "__processed.txt" {

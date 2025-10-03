@@ -10,8 +10,8 @@ import (
 )
 
 type Cell struct {
-	ColumnId int    `json:"columnId"`
-	Value    string `json:"value"`
+	ColumnId int64      `json:"columnId"`
+	Value    interface{} `json:"value"`
 }
 
 type Row struct {
@@ -24,11 +24,11 @@ type AddRowsRequest struct {
 }
 
 const (
-	colDateParsed  = 5732040604077956
-	colPackageName = 3480240790392708
-	colKpiName     = 7983840417763204
-	colKpiCategory = 665491023286148
-	colKpiSentence = 4756959379804036
+	colDateParsed  int64 = 5732040604077956
+	colPackageName int64 = 3480240790392708
+	colKpiName     int64 = 7983840417763204
+	colKpiCategory int64 = 665491023286148
+	colKpiSentence int64 = 4756959379804036
 )
 
 func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) error {
@@ -43,6 +43,12 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) erro
 		cfg.logger.Error("Error encoding smartsheetRows to json", "Error", err)
 		return err
 	}
+
+	//TESTING
+	jsonBody, _ := json.MarshalIndent(smartsheetRows, "", " ")
+	fmt.Println()
+	fmt.Println(string(jsonBody))
+	//---------
 
 	req, err := http.NewRequest("POST", cfg.smartsheetUrl, reqBody)
 	if err != nil {
@@ -65,7 +71,7 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) erro
 		cfg.logger.Error("Non-2xx status code from Smartsheet", "Status", resp.StatusCode, "Body", string(body))
 		return fmt.Errorf("Smartsheet return status %d", resp.StatusCode)
 	}
-	fmt.Printf("Smartsheet Status Code: %v\n", resp.StatusCode)
+	fmt.Printf("Smartsheet Status Code: %v\n\n", resp.StatusCode)
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Println("Smartsheet Response:", string(body))
 
@@ -91,15 +97,15 @@ func resultsToSmartsheetRows(allResults []PackageResult) AddRowsRequest {
 					},
 					{
 						ColumnId: colKpiName,
-						Value:    result.Name,
+						Value:    fmt.Sprintf("%v", result.Name),
 					},
 					{
 						ColumnId: colKpiCategory,
-						Value:    result.Category,
+						Value:    fmt.Sprintf("%v", result.Category),
 					},
 					{
 						ColumnId: colKpiSentence,
-						Value:    result.Sentence,
+						Value:    fmt.Sprintf("%v", result.Sentence),
 					},
 				},
 			}

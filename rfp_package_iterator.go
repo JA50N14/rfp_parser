@@ -108,16 +108,17 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 				continue
 			}
 
-			absPath := path.Join(rfpPackage, entry.Name())
+			filePath := path.Join(rfpPackage, entry.Name())
 
-			kpiResults, err = processFile(absPath, ext, kpiResults)
+			kpiResults, err = processFile(filePath, ext, kpiResults)
 			if err != nil {
 				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Package", rfpPackage, "Error", err)
 			}
 		}
 	}
+	kpiResults = removeKpiResultsNotFound(kpiResults)
 	packageResult := PackageResult{
-		PackageName: filepath.Dir(rfpPackage),
+		PackageName: filepath.Base(rfpPackage),
 		DateParsed:  time.Now().Format("2006-01-02"),
 		Results:     kpiResults,
 	}
@@ -186,4 +187,16 @@ func CreateKpiResultForRfpPackage(kpiTrackerDefs []KpiTrackerDef) []KpiResult {
 		})
 	}
 	return kpiResults
+}
+
+
+func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
+	var kpiResultsFound []KpiResult
+	for _, result := range kpiResults {
+		if result.Found == true {
+			kpiResultsFound = append(kpiResultsFound, result)
+		}
+	}
+	return kpiResultsFound
+
 }

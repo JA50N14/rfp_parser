@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -32,7 +31,6 @@ func main() {
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {
-		fmt.Printf("EXITING PROGRAM: func traverseRfpPackages failed\n")
 		os.Exit(1)
 	}
 
@@ -40,7 +38,6 @@ func main() {
 
 	err = cfg.postRequestSmartsheets(smartsheetRows)
 	if err != nil {
-		fmt.Printf("EXITING PROGRAM: func postRequestSmartsheets failed\n")
 		os.Exit(1)
 	}
 
@@ -86,6 +83,11 @@ func newApiConfig() (*apiConfig, error) {
 
 	return cfg, nil
 }
+
+
+
+
+
 
 //PDF Parser:
 //Tried a few parsers - rsc/pdf, ledongthuc - ledongthuc works better than rsc/pdf

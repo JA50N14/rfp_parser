@@ -125,6 +125,7 @@ func extractTextFromXlsx(filePath string) (map[string][][]string, error) {
 		}
 		wbData[sheetName] = rows
 	}
+
 	return wbData, nil
 }
 
@@ -180,8 +181,6 @@ func textParser(text string, kpiResults []KpiResult) []KpiResult {
 			}
 		}
 	}
-
-	kpiResults = removeKpiResultsNotFound(kpiResults)
 	return kpiResults
 }
 
@@ -229,7 +228,6 @@ func xlsxAndXlsParser(wbData map[string][][]string, kpiResults []KpiResult) []Kp
 			}
 		}
 	}
-	kpiResults = removeKpiResultsNotFound(kpiResults)
 	return kpiResults
 }
 
@@ -249,15 +247,4 @@ func flattenXlsxAndXlsData(wbData map[string][][]string) []cellData {
 		}
 	}
 	return allData
-}
-
-func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
-	var kpiResultsFound []KpiResult
-	for _, result := range kpiResults {
-		if result.Found == true {
-			kpiResultsFound = append(kpiResultsFound, result)
-		}
-	}
-	return kpiResultsFound
-
 }

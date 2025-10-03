@@ -61,10 +61,6 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows []Row) error {
 		cfg.logger.Error("Non-2xx status code from Smartsheet", "Status", resp.StatusCode, "Body", string(body))
 		return fmt.Errorf("Smartsheet return status %d", resp.StatusCode)
 	}
-	// fmt.Printf("Smartsheet Status Code: %v\n\n", resp.StatusCode)
-	// body, _ := io.ReadAll(resp.Body)
-	// fmt.Println("Smartsheet Response:", string(body))
-
 	return nil
 }
 
@@ -101,12 +97,5 @@ func resultsToSmartsheetRows(allResults []PackageResult) []Row {
 			smartsheetRows = append(smartsheetRows, row)
 		}
 	}
-	//FOR TESTING
-	// for i, row := range smartsheetRows {
-	// 	for _, cell := range row.Cells {
-	// 		fmt.Printf("Row %d: %s\n", i, cell.Value)
-	// 	}
-	// }
-	//------------------------------------------------------
 	return smartsheetRows
 }

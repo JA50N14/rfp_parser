@@ -10,17 +10,13 @@ import (
 )
 
 type Cell struct {
-	ColumnId int64      `json:"columnId"`
-	Value    interface{} `json:"value"`
+	ColumnId int64  `json:"columnId"`
+	Value    string `json:"value"`
 }
 
 type Row struct {
+	ToTop bool   `json:"toTop"`
 	Cells []Cell `json:"cells"`
-}
-
-type AddRowsRequest struct {
-	ToTop bool  `json:"toTop"`
-	Rows  []Row `json:"rows"`
 }
 
 const (
@@ -31,7 +27,7 @@ const (
 	colKpiSentence int64 = 4756959379804036
 )
 
-func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) error {
+func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows []Row) error {
 	client := &http.Client{
 		Timeout: 60 * time.Second,
 	}
@@ -43,12 +39,6 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) erro
 		cfg.logger.Error("Error encoding smartsheetRows to json", "Error", err)
 		return err
 	}
-
-	//TESTING
-	jsonBody, _ := json.MarshalIndent(smartsheetRows, "", " ")
-	fmt.Println()
-	fmt.Println(string(jsonBody))
-	//---------
 
 	req, err := http.NewRequest("POST", cfg.smartsheetUrl, reqBody)
 	if err != nil {
@@ -71,21 +61,20 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows AddRowsRequest) erro
 		cfg.logger.Error("Non-2xx status code from Smartsheet", "Status", resp.StatusCode, "Body", string(body))
 		return fmt.Errorf("Smartsheet return status %d", resp.StatusCode)
 	}
-	fmt.Printf("Smartsheet Status Code: %v\n\n", resp.StatusCode)
-	body, _ := io.ReadAll(resp.Body)
-	fmt.Println("Smartsheet Response:", string(body))
+	// fmt.Printf("Smartsheet Status Code: %v\n\n", resp.StatusCode)
+	// body, _ := io.ReadAll(resp.Body)
+	// fmt.Println("Smartsheet Response:", string(body))
 
 	return nil
 }
 
-func resultsToSmartsheetRows(allResults []PackageResult) AddRowsRequest {
-	smartsheetRows := AddRowsRequest{
-		ToTop: false,
-	}
+func resultsToSmartsheetRows(allResults []PackageResult) []Row {
+	var smartsheetRows []Row
 
 	for _, rfpPackage := range allResults {
 		for _, result := range rfpPackage.Results {
 			row := Row{
+				ToTop: true,
 				Cells: []Cell{
 					{
 						ColumnId: colDateParsed,
@@ -109,15 +98,15 @@ func resultsToSmartsheetRows(allResults []PackageResult) AddRowsRequest {
 					},
 				},
 			}
-			smartsheetRows.Rows = append(smartsheetRows.Rows, row)
+			smartsheetRows = append(smartsheetRows, row)
 		}
 	}
 	//FOR TESTING
-	for i, row := range smartsheetRows.Rows {
-		for _, cell := range row.Cells {
-			fmt.Printf("Row %d: %s\n", i, cell.Value)
-		}
-	}
+	// for i, row := range smartsheetRows {
+	// 	for _, cell := range row.Cells {
+	// 		fmt.Printf("Row %d: %s\n", i, cell.Value)
+	// 	}
+	// }
 	//------------------------------------------------------
 	return smartsheetRows
 }

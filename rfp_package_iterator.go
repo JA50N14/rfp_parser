@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -32,6 +33,8 @@ type PackageResult struct {
 
 const (
 	kpiTrackerDefPath = "./kpiTracker.json"
+	docxExt           = ".docx"
+	xlsxExt           = ".xlsx"
 )
 
 func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
@@ -110,9 +113,29 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 			filePath := path.Join(rfpPackage, entry.Name())
 
-			kpiResults, err = processFile(filePath, ext, kpiResults)
+			data, err := fileToBytes(filePath)
+			if err != nil {
+				cfg.logger.Error("Error opening file to read into bytes", "Error", err)
+				continue
+			}
+
+			//FOR TESTING
+			// fmt.Println()
+			// fmt.Printf("File being processed: %s", filePath)
+			// fmt.Println()
+			//-----------------------
+
+			switch path.Ext(entry.Name()) {
+			case docxExt:
+				kpiResults, err = docxParser(data, kpiResults)
+			case xlsxExt:
+				kpiResults, err = xlsxParser(data, kpiResults)
+			default:
+				continue
+			}
 			if err != nil {
 				cfg.logger.Error("Error parsing file", "Filename", entry.Name(), "Package", rfpPackage, "Error", err)
+				continue
 			}
 		}
 	}
@@ -123,6 +146,21 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 		Results:     kpiResults,
 	}
 	return packageResult, nil
+}
+
+func fileToBytes(filePath string) ([]byte, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
@@ -188,7 +226,6 @@ func CreateKpiResultForRfpPackage(kpiTrackerDefs []KpiTrackerDef) []KpiResult {
 	}
 	return kpiResults
 }
-
 
 func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 	var kpiResultsFound []KpiResult

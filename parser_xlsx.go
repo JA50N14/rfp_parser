@@ -25,7 +25,7 @@ func (cfg *apiConfig) xlsxParser(xlsxData []byte, kpiResults []KpiResult) ([]Kpi
 	}
 
 	var sharedStrings []string
-	if int64(len(xlsxData)) >= int64(104857600) {
+	if int64(len(xlsxData)) <= int64(104857600) {
 		sharedStrings, err = loadSharedStrings(zr)
 		if err != nil {
 			return kpiResults, err
@@ -147,7 +147,6 @@ func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings 
 						if cellType == "s" {
 							idx, _ := strconv.Atoi(val)
 							if idx < 0 || idx >= len(sharedStrings) {
-								fmt.Printf("Skipping invalid shared string index %d (len=%d)\n", idx, len(sharedStrings))
 								continue
 							}
 							text := sharedStrings[idx]
@@ -276,7 +275,6 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 						if cellType == "s" {
 							valIdx, _ := strconv.Atoi(val)
 							if valIdx < 0 || valIdx > ssIndex {
-								fmt.Printf("Skipping invalid shared string index: %d (len=%d)\n", valIdx, ssIndex)
 								continue
 							}
 							_, err = ssFile.Seek(ssOffsets[valIdx], io.SeekStart)

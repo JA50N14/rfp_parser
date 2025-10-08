@@ -119,12 +119,6 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 				continue
 			}
 
-			//FOR TESTING
-			// fmt.Println()
-			// fmt.Printf("File being processed: %s", filePath)
-			// fmt.Println()
-			//-----------------------
-
 			switch path.Ext(entry.Name()) {
 			case docxExt:
 				kpiResults, err = docxParser(data, kpiResults)

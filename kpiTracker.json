@@ -353,18 +353,16 @@
         "found": false
     },
     {
-        "name": "Quality Policy",
-        "category": "Policies",
-        "regexps": [
-            "(?i)\\bquality policy\\b"
-        ],
-        "found": false
-    },
-    {
         "name": "Scope 1, 2 or 3 greenhouse gas baseline",
         "category": "Environmental Emissions Metrics",
         "regexps": [
-            "(?i)\\bscope 1, 2, or 3 greenhouse gas baseline\\b", "(?i)\\bscope 1, 2 or 3 greenhouse gas baseline\\b", "(?i)\\bgreenhouse gas baseline\\b", "(?i)\\bscope 1, 2, or 3 baseline\\b", "(?i)\\bscope 1, 2 or 3 baseline\\b", "(?i)\\bscope baselines\\b", "(?i)\\bscope emission baselines\\b"
+            "(?i)\\bscope 1, 2, or 3 greenhouse gas baseline\\b",
+            "(?i)\\bscope 1, 2 or 3 greenhouse gas baseline\\b",
+            "(?i)\\bgreenhouse gas baseline\\b",
+            "(?i)\\bscope 1, 2, or 3 baseline\\b",
+            "(?i)\\bscope 1, 2 or 3 baseline\\b",
+            "(?i)\\bscope baselines\\b",
+            "(?i)\\bscope emission baselines\\b"
         ],
         "found": false
     },
@@ -372,7 +370,11 @@
         "name": "Scope 1, 2 or 3 Reduction targets",
         "category": "Environmental Emissions Metrics",
         "regexps": [
-            "(?i)\\bscope 1, 2, or 3 reduction targets\\b", "(?i)\\bscope 1, 2 or 3 reduction targets\\b", "(?i)\\bscope reduction targets\\b", "(?i)\\bscope 1, 2, or 3 targets\\b", "(?i)\\bscope 1, 2 or 3 targets\\b"
+            "(?i)\\bscope 1, 2, or 3 reduction targets\\b",
+            "(?i)\\bscope 1, 2 or 3 reduction targets\\b",
+            "(?i)\\bscope reduction targets\\b",
+            "(?i)\\bscope 1, 2, or 3 targets\\b",
+            "(?i)\\bscope 1, 2 or 3 targets\\b"
         ],
         "found": false
     },
@@ -416,7 +418,11 @@
         "name": "Diversity, equity and inclusion targets",
         "category": "Social Metrics",
         "regexps": [
-            "(?i)\\bdiversity, equity and inclusion targets\\b", "(?i)\\bdiversity, equity, and inclusion targets\\b", "(?i)\\bdiversity, equity & inclusion targets\\b", "(?i)\\bdiversity, equity, & inclusion targets\\b", "(?i)\\bdei targets\\b"
+            "(?i)\\bdiversity, equity and inclusion targets\\b",
+            "(?i)\\bdiversity, equity, and inclusion targets\\b",
+            "(?i)\\bdiversity, equity & inclusion targets\\b",
+            "(?i)\\bdiversity, equity, & inclusion targets\\b",
+            "(?i)\\bdei targets\\b"
         ],
         "found": false
     },

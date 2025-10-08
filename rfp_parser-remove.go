@@ -112,7 +112,7 @@ package main
 // 	}
 // 	defer f.Close()
 
-// 	wb, err := excelize.OpenReader(f) //First Problem - This loads entire workbook into memory. 
+// 	wb, err := excelize.OpenReader(f) //First Problem - This loads entire workbook into memory.
 // 	if err != nil {
 // 		return nil, fmt.Errorf("Error opening .xlsx reader: %w", err)
 // 	}

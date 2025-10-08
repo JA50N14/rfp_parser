@@ -1,9 +1,8 @@
 package main
 
 import (
-	"strings"
 	"regexp"
-
+	"strings"
 )
 
 type cleanupRule struct {
@@ -25,7 +24,7 @@ var cleanupRules = []cleanupRule{
 
 var sentenceRule = regexp.MustCompile(`\. [A-Z]`)
 
-func scanTextWithRegex (text string, kpiResults []KpiResult) []KpiResult {
+func scanTextWithRegex(text string, kpiResults []KpiResult) []KpiResult {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
 
@@ -74,4 +73,3 @@ func extractSentence(text string, target *regexp.Regexp, boundary *regexp.Regexp
 	}
 	return text[leftIdx:rightIdx]
 }
-

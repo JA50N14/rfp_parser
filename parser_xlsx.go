@@ -16,7 +16,7 @@ const (
 	sharedStringsFilePath = `/home/jason_macfarlane/tmp`
 )
 
-func xlsxParser(xlsxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) xlsxParser(xlsxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
 	reader := bytes.NewReader(xlsxData)
 
 	zr, err := zip.NewReader(reader, int64(len(xlsxData)))
@@ -30,12 +30,12 @@ func xlsxParser(xlsxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
 		if err != nil {
 			return kpiResults, err
 		}
-		kpiResults, err = parseWithSharedStringsSlice(zr, sharedStrings, kpiResults)
+		kpiResults, err = cfg.parseWithSharedStringsSlice(zr, sharedStrings, kpiResults)
 		if err != nil {
 			return kpiResults, err
 		}
 	} else {
-		kpiResults, err = parseWithSharedStringsTmpFile(zr, kpiResults)
+		kpiResults, err = cfg.parseWithSharedStringsTmpFile(zr, kpiResults)
 		if err != nil {
 			return kpiResults, err
 		}
@@ -54,7 +54,7 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 	}
 
 	if sharedStringsFile == nil {
-		return nil, fmt.Errorf("sharedStrings.xml not found in xlsx file")
+		return nil, nil
 	}
 
 	rc, err := sharedStringsFile.Open()
@@ -66,9 +66,9 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 	decoder := xml.NewDecoder(rc)
 	var sb strings.Builder
 	var inText bool
-	
+
 	for {
-		t, err := decoder.Token()
+		tok, err := decoder.Token()
 		if err == io.EOF {
 			break
 		}
@@ -76,9 +76,9 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 			return nil, fmt.Errorf("Error decoding token in sharedStrings.xml: %w", err)
 		}
 
-		switch tok := t.(type) {
+		switch tokElem := tok.(type) {
 		case xml.StartElement:
-			switch tok.Name.Local {
+			switch tokElem.Name.Local {
 			case "si":
 				sb.Reset()
 			case "t":
@@ -86,10 +86,10 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 			}
 		case xml.CharData:
 			if inText {
-				sb.Write(tok)
+				sb.Write(tokElem)
 			}
 		case xml.EndElement:
-			switch tok.Name.Local {
+			switch tokElem.Name.Local {
 			case "t":
 				inText = false
 			case "si":
@@ -100,12 +100,13 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 	return sharedStrings, nil
 }
 
-func parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResults []KpiResult) ([]KpiResult, error) {
 	for _, f := range zr.File {
 		if strings.Contains(f.Name, "worksheets/sheet") {
 			rc, err := f.Open()
 			if err != nil {
-				return kpiResults, fmt.Errorf("Error opening worksheet xml file: %w", err)
+				cfg.logger.Error("Error opening worksheet xml file", "Error", err)
+				continue
 			}
 			decoder := xml.NewDecoder(rc)
 			var inV bool
@@ -113,34 +114,35 @@ func parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResu
 			var cellType string
 
 			for {
-				t, err := decoder.Token()
+				tok, err := decoder.Token()
 				if err == io.EOF {
 					break
 				}
 				if err != nil {
-					return kpiResults, fmt.Errorf("Error decoding token in worksheet xml file: %w", err)
+					cfg.logger.Error("Error decoding token in worksheet xml file", "Error", err)
+					continue
 				}
 
-				switch tok := t.(type) {
+				switch tokElem := tok.(type) {
 				case xml.StartElement:
-					if tok.Name.Local == "c" {
-						for _, attr := range tok.Attr {
+					if tokElem.Name.Local == "c" {
+						for _, attr := range tokElem.Attr {
 							if attr.Name.Local == "t" {
 								cellType = attr.Value
 								break
 							}
 						}
 					}
-					if tok.Name.Local == "v" {
+					if tokElem.Name.Local == "v" {
 						inV = true
 						val = ""
 					}
 				case xml.CharData:
 					if inV {
-						val += string(tok)
+						val += string(tokElem)
 					}
 				case xml.EndElement:
-					if tok.Name.Local == "v" {
+					if tokElem.Name.Local == "v" {
 						inV = false
 						if cellType == "s" {
 							idx, _ := strconv.Atoi(val)
@@ -162,7 +164,7 @@ func parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResu
 	return kpiResults, nil
 }
 
-func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]KpiResult, error) {
 	var sharedStringsFile *zip.File
 	for _, f := range zr.File {
 		if strings.HasSuffix(f.Name, "sharedStrings.xml") {
@@ -171,62 +173,63 @@ func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]Kp
 		}
 	}
 
-	if sharedStringsFile == nil {
-		return kpiResults, fmt.Errorf("sharedStrings.xml not found")
-	}
-
-	rc, err := sharedStringsFile.Open()
-	if err != nil {
-		return kpiResults, fmt.Errorf("Error opening sharedStrings.xml: %w", err)
-	}
-
-	decoder := xml.NewDecoder(rc)
-
+	var ssFile *os.File
 	var ssOffsets []int64
-	var sb strings.Builder
-	var inText bool
 	ssIndex := 0
-	ssFile, err := os.CreateTemp(sharedStringsFilePath, "sharedStrings")
-	if err != nil {
-		return kpiResults, fmt.Errorf("Error created sharedStrings temporary file: %w", err)
-	}
-	defer os.Remove(ssFile.Name())
+	hasSharedStrings := sharedStringsFile != nil
 
-	//Fill up ssFile and ssOffsets
-	for {
-		t, err := decoder.Token()
-		if err == io.EOF {
-			break
-		}
+	if hasSharedStrings {
+		rc, err := sharedStringsFile.Open()
 		if err != nil {
-			return kpiResults, fmt.Errorf("Error decoding token in sharedStrings.xml: %w", err)
+			return kpiResults, fmt.Errorf("Error opening sharedStrings.xml: %w", err)
 		}
 
-		switch tok := t.(type) {
-		case xml.StartElement:
-			switch tok.Name.Local {
-			case "si":
-				sb.Reset()
-			case "t":
-				inText = true
+		decoder := xml.NewDecoder(rc)
+
+		var sb strings.Builder
+		var inText bool
+		ssFile, err = os.CreateTemp(sharedStringsFilePath, "sharedStrings")
+		if err != nil {
+			return kpiResults, fmt.Errorf("Error created sharedStrings temporary file: %w", err)
+		}
+		defer os.Remove(ssFile.Name())
+
+		//Fill up ssFile and ssOffsets
+		for {
+			tok, err := decoder.Token()
+			if err == io.EOF {
+				break
 			}
-		case xml.CharData:
-			if inText {
-				sb.Write(tok)
+			if err != nil {
+				return kpiResults, fmt.Errorf("Error decoding token in sharedStrings.xml: %w", err)
 			}
-		case xml.EndElement:
-			switch tok.Name.Local {
-			case "t":
-				inText = false
-			case "si":
-				offset, _ := ssFile.Seek(0, io.SeekCurrent)
-				ssOffsets = append(ssOffsets, offset)
-				fmt.Fprintf(ssFile, "%d|%s\n", ssIndex, sb.String())
-				ssIndex++
+
+			switch tokElem := tok.(type) {
+			case xml.StartElement:
+				switch tokElem.Name.Local {
+				case "si":
+					sb.Reset()
+				case "t":
+					inText = true
+				}
+			case xml.CharData:
+				if inText {
+					sb.Write(tokElem)
+				}
+			case xml.EndElement:
+				switch tokElem.Name.Local {
+				case "t":
+					inText = false
+				case "si":
+					offset, _ := ssFile.Seek(0, io.SeekCurrent)
+					ssOffsets = append(ssOffsets, offset)
+					fmt.Fprintf(ssFile, "%d|%s\n", ssIndex, sb.String())
+					ssIndex++
+				}
 			}
 		}
+		rc.Close()
 	}
-	rc.Close()
 
 	//Parse worksheets
 	for _, f := range zr.File {
@@ -241,33 +244,34 @@ func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]Kp
 			var cellType string
 
 			for {
-				t, err := decoder.Token()
+				tok, err := decoder.Token()
 				if err == io.EOF {
 					break
 				}
 				if err != nil {
-					return kpiResults, fmt.Errorf("Error decoding token in worksheet xml file: %w", err)
+					cfg.logger.Error("Error decoding token in worksheet xml file", "Error", err)
+					continue
 				}
 
-				switch tok := t.(type) {
+				switch tokElem := tok.(type) {
 				case xml.StartElement:
-					if tok.Name.Local == "c" {
-						for _, attr := range tok.Attr {
+					if tokElem.Name.Local == "c" {
+						for _, attr := range tokElem.Attr {
 							if attr.Name.Local == "t" {
 								cellType = attr.Value
 							}
 						}
 					}
-					if tok.Name.Local == "v" {
+					if tokElem.Name.Local == "v" {
 						inV = true
 						val = ""
 					}
 				case xml.CharData:
 					if inV {
-						val += string(tok)
+						val += string(tokElem)
 					}
 				case xml.EndElement:
-					if tok.Name.Local == "v" {
+					if tokElem.Name.Local == "v" {
 						inV = false
 						if cellType == "s" {
 							valIdx, _ := strconv.Atoi(val)
@@ -295,10 +299,9 @@ func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]Kp
 					}
 				}
 			}
+			rc.Close()
 		}
-		rc.Close()
 	}
-
 	return kpiResults, nil
 }
 

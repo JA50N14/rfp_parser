@@ -129,7 +129,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 			case docxExt:
 				kpiResults, err = docxParser(data, kpiResults)
 			case xlsxExt:
-				kpiResults, err = xlsxParser(data, kpiResults)
+				kpiResults, err = cfg.xlsxParser(data, kpiResults)
 			default:
 				continue
 			}

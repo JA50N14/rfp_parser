@@ -14,7 +14,7 @@ func docxParser(docxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
 
 	zr, err := zip.NewReader(reader, int64(len(docxData)))
 	if err != nil {
-		return kpiResults, fmt.Errorf("Error creating zip reader: %w", err)
+		return kpiResults, fmt.Errorf("Error creating zip reader for docx file: %w", err)
 	}
 
 	var documentFile *zip.File

@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -66,16 +64,16 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 			continue
 		}
 
-		rfpProcessedStatus, err := rfpProcessedCompleteCheck(absPath)
-		if err != nil {
-			cfg.logger.Error("Error checking if RFP Package has been parsed.", "Directory Name", rfpPackage.Name())
-			return nil, err
-		}
+		// rfpProcessedStatus, err := rfpProcessedCompleteCheck(absPath)
+		// if err != nil {
+		// 	cfg.logger.Error("Error checking if RFP Package has been parsed.", "Directory Name", rfpPackage.Name())
+		// 	return nil, err
+		// }
 
-		if rfpProcessedStatus {
-			cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
-			continue
-		}
+		// if rfpProcessedStatus {
+		// 	cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
+		// 	continue
+		// }
 
 		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
 		if err != nil {
@@ -91,9 +89,9 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 	kpiResults := CreateKpiResultForRfpPackage(kpiTrackerDefs)
 	stack := []string{rfpPackage}
 	for len(stack) > 0 {
-		current := stack[len(stack)-1]
+		currentDirPath := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
-		entries, err := os.ReadDir(current)
+		entries, err := os.ReadDir(currentDirPath)
 		if err != nil {
 			cfg.logger.Error("Could not open RFP Package root directory or sub-directory", "Directory", rfpPackage, "Error", err)
 			return PackageResult{}, err
@@ -101,7 +99,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 		for _, entry := range entries {
 			if entry.IsDir() {
-				dirPath := path.Join(rfpPackage, entry.Name())
+				dirPath := path.Join(currentDirPath, entry.Name())
 				stack = append(stack, dirPath)
 				continue
 			}
@@ -111,19 +109,25 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 				continue
 			}
 
-			filePath := path.Join(rfpPackage, entry.Name())
+			filePath := path.Join(currentDirPath, entry.Name())
 
-			data, err := fileToBytes(filePath)
+			f, err := os.Open(filePath)
 			if err != nil {
-				cfg.logger.Error("Error opening file to read into bytes", "Error", err)
+				cfg.logger.Error("Error opening file to obtain io.ReadAt interface", "Error", err)
 				continue
+			}
+			defer f.Close()
+
+			info, err := f.Stat()
+			if err != nil {
+				cfg.logger.Error("Error getting file stats", "Error", err)
 			}
 
 			switch path.Ext(entry.Name()) {
 			case docxExt:
-				kpiResults, err = docxParser(data, kpiResults)
+				kpiResults, err = docxParser(f, info.Size(), kpiResults)
 			case xlsxExt:
-				kpiResults, err = cfg.xlsxParser(data, kpiResults)
+				kpiResults, err = cfg.xlsxParser(f, info.Size(), kpiResults)
 			default:
 				continue
 			}
@@ -140,34 +144,6 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 		Results:     kpiResults,
 	}
 	return packageResult, nil
-}
-
-func fileToBytes(filePath string) ([]byte, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
-	rfpPackage, err := os.ReadDir(rfpRootDir)
-	if err != nil {
-		return false, fmt.Errorf("Could not open RFP Package: %w", err)
-	}
-	for _, item := range rfpPackage {
-		if !item.IsDir() && item.Name() == "__processed.txt" {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 func loadKpiTrackerDefs() ([]KpiTrackerDef, error) {
@@ -229,5 +205,34 @@ func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 		}
 	}
 	return kpiResultsFound
-
 }
+
+// func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
+// 	rfpPackage, err := os.ReadDir(rfpRootDir)
+// 	if err != nil {
+// 		return false, fmt.Errorf("Could not open RFP Package: %w", err)
+// 	}
+// 	for _, item := range rfpPackage {
+// 		if !item.IsDir() && item.Name() == "__processed.txt" {
+// 			return true, nil
+// 		}
+// 	}
+// 	return false, nil
+// }
+
+
+
+//Plan for handling files via http response:
+	//Send a http request for files to Microsoft Graph API
+		//Read how Microsoft Graph API works and how to retrieve files one at a time
+		//Ensure my program accounts for obtaining files in sub-folders
+		//Ensure all files in the root dir get processed as one package.
+		//Ensure to only process root directories that have not already been processed
+	//Create and open a tmp file
+		//tmp, err := os.CreateTemp("", "upload-*.docx or .xlsx")
+		//defer os.Remove(tmp.Name())
+		//defer tmp.Close()
+		//io.Copy(tmp, response.Body)
+		//info, err := tmp.Stat()
+	//call parser(tmp, info.Size(), ...)
+		//zip.NewReader(r, size)

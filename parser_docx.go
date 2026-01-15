@@ -2,17 +2,15 @@ package main
 
 import (
 	"archive/zip"
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"strings"
 )
 
-func docxParser(docxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
-	reader := bytes.NewReader(docxData)
 
-	zr, err := zip.NewReader(reader, int64(len(docxData)))
+func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
+	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return kpiResults, fmt.Errorf("Error creating zip reader for docx file: %w", err)
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"archive/zip"
 	"bufio"
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -16,16 +15,14 @@ const (
 	sharedStringsFilePath = `/home/jason_macfarlane/tmp`
 )
 
-func (cfg *apiConfig) xlsxParser(xlsxData []byte, kpiResults []KpiResult) ([]KpiResult, error) {
-	reader := bytes.NewReader(xlsxData)
-
-	zr, err := zip.NewReader(reader, int64(len(xlsxData)))
+func (cfg *apiConfig) xlsxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
+	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return kpiResults, fmt.Errorf("Error creating zip reader for xlsx file: %w", err)
 	}
 
 	var sharedStrings []string
-	if int64(len(xlsxData)) <= int64(104857600) {
+	if size <= int64(104857600) {
 		sharedStrings, err = loadSharedStrings(zr)
 		if err != nil {
 			return kpiResults, err

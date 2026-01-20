@@ -31,6 +31,7 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+	os.Exit(0)
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {

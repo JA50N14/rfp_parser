@@ -1,14 +1,16 @@
 package auth
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,26 +28,29 @@ type AccessTokenResponse struct {
 }
 
 func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
-	jwt, err := makeJWT()
-	if err != nil {
-		return AccessTokenResponse{}, err
-	}
-	return fetchAccessToken(jwt, client)
-}
-
-func fetchAccessToken(jwt string, client *http.Client) (AccessTokenResponse, error) {
-	tenant_id := os.Getenv("GRAPH_TENANT_ID")
-	if tenant_id == "" {
+	tenantID := os.Getenv("GRAPH_TENANT_ID")
+	if tenantID == "" {
 		return AccessTokenResponse{}, errors.New("GRAPH_TENANT_ID .env variable not set")
 	}
 
-	tokenURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenant_id)
-	
 	clientID := os.Getenv("GRAPH_CLIENT_ID")
 	if clientID == "" {
 		return AccessTokenResponse{}, errors.New("GRAPH_CLIENT_ID .env variable not set")
 	}
+	
+	jwt, err := makeJWT(tenantID, clientID)
+	if err != nil {
+		return AccessTokenResponse{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Minute)
+	defer cancel()
 
+	return fetchAccessToken(ctx, jwt, tenantID, clientID, client)
+}
+
+func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, client *http.Client) (AccessTokenResponse, error) {
+	tokenURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
+	
 	data := url.Values{}
 	data.Set("client_id", clientID)
 	data.Set("scope", "https://graph.microsoft.com/.default")
@@ -53,45 +58,44 @@ func fetchAccessToken(jwt string, client *http.Client) (AccessTokenResponse, err
 	data.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 	data.Set("client_assertion", jwt)
 
-	req, err := http.NewRequest("POST", tokenURL, strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return AccessTokenResponse{}, err
+		return AccessTokenResponse{}, fmt.Errorf("creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return AccessTokenResponse{}, fmt.Errorf("error making request to retrieve access token: %s", err)
+		return AccessTokenResponse{}, fmt.Errorf("sending request to Entra ID endpoint: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return AccessTokenResponse{}, fmt.Errorf("token endpoint returned %d: %s", resp.StatusCode, string(bodyBytes))
+	}
 	
 	var accessTokenResp AccessTokenResponse
 
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&accessTokenResp)
 	if err != nil {
-		return AccessTokenResponse{}, err
+		return AccessTokenResponse{}, fmt.Errorf("decoding token response: %w", err)
 	}
 
-	if accessTokenResp.TokenType != "Bearer" {
+	if !strings.EqualFold(accessTokenResp.TokenType, "Bearer") {
 		return AccessTokenResponse{}, fmt.Errorf("invalid token_type: %s", accessTokenResp.TokenType)
 	}
+
+////////////////
+	fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %s", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
+////////////////
 	return accessTokenResp, nil
 }
 
 
-func makeJWT() (string, error) {
-	clientID  := os.Getenv("GRAPH_CLIENT_ID")
-	if clientID == "" {
-		return "", errors.New("GRAPH_CLIENT_ID .env variable not set")
-	}
-
-	tenantID := os.Getenv("GRAPH_TENANT_ID")
-	if tenantID == "" {
-		return "", errors.New("GRAPH_TENANT_ID .env variable not set")
-	}
-
+func makeJWT(tenantID, clientID string) (string, error) {
 	thumbprint, err := computeX5TFromCert()
 	if err != nil {
 		return "", err
@@ -124,6 +128,7 @@ func makeJWT() (string, error) {
 
 	return signedJWT, nil
 }
+
 
 func loadPrivateKey() (*rsa.PrivateKey, error) {
 	keyBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY_PATH"))
@@ -171,6 +176,7 @@ func computeX5TFromCert() (string, error) {
 	}
 
 	checkSum := sha1.Sum(cert.Raw)
+
 	return base64.RawURLEncoding.EncodeToString(checkSum[:]), nil
 }
 

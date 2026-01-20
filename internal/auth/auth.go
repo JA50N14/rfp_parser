@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,17 +29,17 @@ type AccessTokenResponse struct {
 func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 	tenantID := os.Getenv("GRAPH_TENANT_ID")
 	if tenantID == "" {
-		return AccessTokenResponse{}, errors.New("GRAPH_TENANT_ID .env variable not set")
+		return AccessTokenResponse{}, fmt.Errorf("GRAPH_TENANT_ID .env variable not set")
 	}
 
 	clientID := os.Getenv("GRAPH_CLIENT_ID")
 	if clientID == "" {
-		return AccessTokenResponse{}, errors.New("GRAPH_CLIENT_ID .env variable not set")
+		return AccessTokenResponse{}, fmt.Errorf("GRAPH_CLIENT_ID .env variable not set")
 	}
 	
 	jwt, err := makeJWT(tenantID, clientID)
 	if err != nil {
-		return AccessTokenResponse{}, err
+		return AccessTokenResponse{}, fmt.Errorf("make JWT returned: %w", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Minute)
 	defer cancel()
@@ -89,7 +88,7 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 	}
 
 ////////////////
-	fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %s", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
+	//fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %d", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
 ////////////////
 	return accessTokenResp, nil
 }
@@ -98,12 +97,12 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 func makeJWT(tenantID, clientID string) (string, error) {
 	thumbprint, err := computeX5TFromCert()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("thumbprint returned: %w", err)
 	}
 
 	privateKey, err := loadPrivateKey()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("privatekey returned: %w", err)
 	}
 
 	claims := jwt.MapClaims {
@@ -123,7 +122,7 @@ func makeJWT(tenantID, clientID string) (string, error) {
 
 	signedJWT, err := token.SignedString(privateKey)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("signed JWT returned: %w", err)
 	}
 
 	return signedJWT, nil
@@ -133,12 +132,12 @@ func makeJWT(tenantID, clientID string) (string, error) {
 func loadPrivateKey() (*rsa.PrivateKey, error) {
 	keyBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY_PATH"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("private key bytes returned: %w", err)
 	}
 
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
-		return nil, errors.New("invalid PEM file")
+		return nil, fmt.Errorf("invalid PEM file: %w", err)
 	}
 	
 	switch block.Type {
@@ -147,11 +146,11 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 	case "PRIVATE KEY":
 		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("private key returned from PKCS8: %w", err)
 		}
 		rsaKey, ok := key.(*rsa.PrivateKey)
 		if !ok {
-			return nil, errors.New("private key is not RSA")
+			return nil, fmt.Errorf("private key is not RSA")
 		}
 		return rsaKey, nil
 	default:
@@ -162,7 +161,7 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 func computeX5TFromCert() (string, error) {
 	certPEM, err := os.ReadFile(os.Getenv("CERTIFICATE_PATH"))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not read certificate from path: %w", err)
 	}
 
 	block, _ := pem.Decode(certPEM)
@@ -172,7 +171,7 @@ func computeX5TFromCert() (string, error) {
 	
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cert returned from parse certificate: %w", err)
 	}
 
 	checkSum := sha1.Sum(cert.Raw)

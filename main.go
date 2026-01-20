@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -27,14 +28,17 @@ const (
 )
 
 func main() {
-	cfg, err := newApiConfig()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	cfg, err := newApiConfig(logger)
 	if err != nil {
+		logger.Error("Failed to initialize API config", "error", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {
+		logger.Error("Failed to traverse RFP Packages", "error", err)
 		os.Exit(1)
 	}
 
@@ -42,6 +46,7 @@ func main() {
 
 	err = cfg.postRequestSmartsheets(smartsheetRows)
 	if err != nil {
+		logger.Error("Failed to post to Smartsheets", "error", err)
 		os.Exit(1)
 	}
 
@@ -49,19 +54,17 @@ func main() {
 	os.Exit(0)
 }
 
-func newApiConfig() (*apiConfig, error) {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
+func newApiConfig(logger *slog.Logger) (*apiConfig, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		logger.Error(".env file unreadable", "error", err)
-		return nil, err
+		logger.Error("failed to load .env file", "error", err)
+		return nil, fmt.Errorf("loading .env file: %w", err)
 	}
 
 	bearerTokenSmartsheet := os.Getenv("SMARTSHEET_TOKEN")
 	if bearerTokenSmartsheet == "" {
-		logger.Error("SMARTSHEET_TOKEN .env variable not set")
-		return nil, errors.New("")
+		logger.Error("SMARTSHEET_TOKEN not set in .env")
+		return nil, fmt.Errorf("")
 	}
 
 	smartsheetUrl := os.Getenv("SMARTSHEET_URL")

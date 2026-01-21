@@ -220,19 +220,17 @@ func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 // 	return false, nil
 // }
 
-
-
 //Plan for handling files via http response:
-	//Send a http request for files to Microsoft Graph API
-		//Read how Microsoft Graph API works and how to retrieve files one at a time
-		//Ensure my program accounts for obtaining files in sub-folders
-		//Ensure all files in the root dir get processed as one package.
-		//Ensure to only process root directories that have not already been processed
-	//Create and open a tmp file
-		//tmp, err := os.CreateTemp("", "upload-*.docx or .xlsx")
-		//defer os.Remove(tmp.Name())
-		//defer tmp.Close()
-		//io.Copy(tmp, response.Body)
-		//info, err := tmp.Stat()
-	//call parser(tmp, info.Size(), ...)
-		//zip.NewReader(r, size)
+//Send a http request for files to Microsoft Graph API
+//Read how Microsoft Graph API works and how to retrieve files one at a time
+//Ensure my program accounts for obtaining files in sub-folders
+//Ensure all files in the root dir get processed as one package.
+//Ensure to only process root directories that have not already been processed
+//Create and open a tmp file
+//tmp, err := os.CreateTemp("", "upload-*.docx or .xlsx")
+//defer os.Remove(tmp.Name())
+//defer tmp.Close()
+//io.Copy(tmp, response.Body)
+//info, err := tmp.Stat()
+//call parser(tmp, info.Size(), ...)
+//zip.NewReader(r, size)

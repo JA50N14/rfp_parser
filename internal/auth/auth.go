@@ -22,8 +22,8 @@ import (
 
 type AccessTokenResponse struct {
 	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
 func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
@@ -36,12 +36,12 @@ func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 	if clientID == "" {
 		return AccessTokenResponse{}, fmt.Errorf("GRAPH_CLIENT_ID .env variable not set")
 	}
-	
+
 	jwt, err := makeJWT(tenantID, clientID)
 	if err != nil {
 		return AccessTokenResponse{}, fmt.Errorf("make JWT returned: %w", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	return fetchAccessToken(ctx, jwt, tenantID, clientID, client)
@@ -49,7 +49,7 @@ func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 
 func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, client *http.Client) (AccessTokenResponse, error) {
 	tokenURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
-	
+
 	data := url.Values{}
 	data.Set("client_id", clientID)
 	data.Set("scope", "https://graph.microsoft.com/.default")
@@ -74,7 +74,7 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return AccessTokenResponse{}, fmt.Errorf("token endpoint returned %d: %s", resp.StatusCode, string(bodyBytes))
 	}
-	
+
 	var accessTokenResp AccessTokenResponse
 
 	decoder := json.NewDecoder(resp.Body)
@@ -87,12 +87,11 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 		return AccessTokenResponse{}, fmt.Errorf("invalid token_type: %s", accessTokenResp.TokenType)
 	}
 
-////////////////
-	//fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %d", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
-////////////////
+	////////////////
+	// fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %d", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
+	////////////////
 	return accessTokenResp, nil
 }
-
 
 func makeJWT(tenantID, clientID string) (string, error) {
 	thumbprint, err := computeX5TFromCert()
@@ -105,7 +104,7 @@ func makeJWT(tenantID, clientID string) (string, error) {
 		return "", fmt.Errorf("privatekey returned: %w", err)
 	}
 
-	claims := jwt.MapClaims {
+	claims := jwt.MapClaims{
 		"aud": "https://login.microsoftonline.com/" + tenantID + "/oauth2/v2.0/token",
 		"iss": clientID,
 		"sub": clientID,
@@ -128,7 +127,6 @@ func makeJWT(tenantID, clientID string) (string, error) {
 	return signedJWT, nil
 }
 
-
 func loadPrivateKey() (*rsa.PrivateKey, error) {
 	keyBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY_PATH"))
 	if err != nil {
@@ -139,7 +137,7 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 	if block == nil {
 		return nil, fmt.Errorf("invalid PEM file: %w", err)
 	}
-	
+
 	switch block.Type {
 	case "RSA PRIVATE KEY":
 		return x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -168,7 +166,7 @@ func computeX5TFromCert() (string, error) {
 	if block == nil || block.Type != "CERTIFICATE" {
 		return "", fmt.Errorf("unsupported certificate PEM %s", block.Type)
 	}
-	
+
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return "", fmt.Errorf("cert returned from parse certificate: %w", err)
@@ -178,4 +176,3 @@ func computeX5TFromCert() (string, error) {
 
 	return base64.RawURLEncoding.EncodeToString(checkSum[:]), nil
 }
-

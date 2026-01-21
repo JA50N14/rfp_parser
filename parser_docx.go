@@ -8,7 +8,6 @@ import (
 	"strings"
 )
 
-
 func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
@@ -74,9 +73,7 @@ func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult,
 	return kpiResults, nil
 }
 
-
 //word/document.xml file:
 //<w:p> = paragraph
 //<w:r> = run (chunk of text with consistent formatting)
 //<w:t> = the actual text node
-

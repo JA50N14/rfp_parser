@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,11 +15,11 @@ type apiConfig struct {
 	bearerTokenSmartsheet string
 	smartsheetUrl         string
 	rfpPackageRootDir     string
-	accessToken string
-	accessTokenExpiresAt time.Time
+	accessToken           string
+	accessTokenExpiresAt  time.Time
 	extMap                map[string]string
 	logger                *slog.Logger
-	client *http.Client
+	client                *http.Client
 }
 
 const (
@@ -57,20 +56,17 @@ func main() {
 func newApiConfig(logger *slog.Logger) (*apiConfig, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		logger.Error("failed to load .env file", "error", err)
-		return nil, fmt.Errorf("loading .env file: %w", err)
+		return nil, fmt.Errorf("failed to load .env file: %w", err)
 	}
 
 	bearerTokenSmartsheet := os.Getenv("SMARTSHEET_TOKEN")
 	if bearerTokenSmartsheet == "" {
-		logger.Error("SMARTSHEET_TOKEN not set in .env")
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("SMARTSHEET_TOKEN not set in .env")
 	}
 
 	smartsheetUrl := os.Getenv("SMARTSHEET_URL")
 	if smartsheetUrl == "" {
-		logger.Error("SMARTSHEET_URL .env variable not set")
-		return nil, errors.New("")
+		return nil, fmt.Errorf("SMARTSHEET_URL .env variable not set")
 	}
 
 	extMap := map[string]string{
@@ -81,7 +77,7 @@ func newApiConfig(logger *slog.Logger) (*apiConfig, error) {
 	client := &http.Client{
 		Timeout: 5 * time.Minute,
 	}
-	
+
 	tokenResp, err := auth.GetGraphAccessToken(client)
 	if err != nil {
 		return nil, err
@@ -94,9 +90,9 @@ func newApiConfig(logger *slog.Logger) (*apiConfig, error) {
 		rfpPackageRootDir:     RfpPackageRootDir,
 		extMap:                extMap,
 		logger:                logger,
-		client: client,
-		accessToken: tokenResp.AccessToken,
-		accessTokenExpiresAt: tokenExpiresAt,
+		client:                client,
+		accessToken:           tokenResp.AccessToken,
+		accessTokenExpiresAt:  tokenExpiresAt,
 	}
 	return cfg, nil
 }

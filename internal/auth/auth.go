@@ -41,6 +41,7 @@ func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 	if err != nil {
 		return AccessTokenResponse{}, fmt.Errorf("make JWT returned: %w", err)
 	}
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -87,9 +88,9 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 		return AccessTokenResponse{}, fmt.Errorf("invalid token_type: %s", accessTokenResp.TokenType)
 	}
 
-	////////////////
-	// fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %d", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
-	////////////////
+////////////////
+	fmt.Printf("ACCESS TOKEN: %s / ACCESS TOKEN TYPE: %s / Expires In: %d", accessTokenResp.AccessToken, accessTokenResp.TokenType, accessTokenResp.ExpiresIn)
+////////////////
 	return accessTokenResp, nil
 }
 

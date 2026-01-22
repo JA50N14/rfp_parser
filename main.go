@@ -33,7 +33,9 @@ func main() {
 		logger.Error("Failed to initialize API config", "error", err)
 		os.Exit(1)
 	}
+///////////////
 	os.Exit(0)
+///////////////
 
 	allResults, err := cfg.traverseRfpPackages()
 	if err != nil {

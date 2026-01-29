@@ -13,7 +13,7 @@ type GraphListResponse[T any] struct {
 const maxRetries = 5
 
 
-func (cfg *apiConfig) do[T any](req *http.Request) (T, error) {
+func (cfg *apiConfig) do[T any](ctx context.Context, buildReq func(ctx context.Context) (*http.Request, error)) (T, error) {
 	var zero T
 	var (
 		result T
@@ -28,7 +28,17 @@ func (cfg *apiConfig) do[T any](req *http.Request) (T, error) {
 			if wait == 0 {
 				wait = backoff(attempt) //////////////////Create backoff function
 			}
-			time.Sleep(wait)
+
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				return zero, fmt.Errorf("context error: %w", ctx.Err())
+			}
+		}
+		
+		req, err := buildReq(ctx)
+		if err != nil {
+			return zero, fmt.Errorf("build request: %w", err)
 		}
 
 		result, retryable, wait, err = cfg.doOnce[T](req)
@@ -58,7 +68,7 @@ func (cfg *apiConfig) doOnce[T any](req *http.Request) (T, bool, time.Duration, 
 
 	if resp.StatusCode == 429 || resp.StatusCode >= 500 {
 		if ra := resp.Header.Get("Retry-After"); ra != "" {
-			if second, _ := strconv.Atoi(ra); err == nil {
+			if seconds, err := strconv.Atoi(ra); err == nil {
 				retryAfter = time.Duration(seconds) * time.Second
 			}
 		}
@@ -67,7 +77,7 @@ func (cfg *apiConfig) doOnce[T any](req *http.Request) (T, bool, time.Duration, 
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		return zero, false, retrtAfter, fmt.Errorf("graph api error: status=%d body=%s", resp.StatusCode, string(body))
+		return zero, false, retryAfter, fmt.Errorf("graph api error: status=%d body=%s", resp.StatusCode, string(body))
 	}
 
 	var result T
@@ -82,11 +92,11 @@ func (cfg *apiConfig) doOnce[T any](req *http.Request) (T, bool, time.Duration, 
 
 
 //Pagination
-func (cfg *apiConfig) listAll[T any](req *http.Request) ([]T, error) {
+func (cfg *apiConfig) listAll[T any](ctx context.Context, buildReq func(ctx context.Context) (*http.Request, error)) ([]T, error) {
 	var all []T
-	
+
 	for {
-		page, err := cfg.do[GraphListResponse[T]](req)
+		page, err := cfg.do[GraphListResponse[T]](ctx, buildReq)
 		if err != nil {
 			return nil, fmt.Errorf("sending request: %w", err)
 		}
@@ -95,11 +105,20 @@ func (cfg *apiConfig) listAll[T any](req *http.Request) ([]T, error) {
 		if page.NextLink == "" {
 			return all, nil
 		}
-		nextReq, err := http.NewRequestWithContext(req.Context(), http.MethodGet, page.NextLink, nil)
-		if err != nil {
-			return nil, fmt.Errorf("create request: %w", err)
+
+		nextLink := page.NextLink
+		prevBuild := buildReq 
+
+		buildReq = func(ctx context.Context) (*http.Request, error) {
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, nextLink, nil)
+			if err != nil {
+				return nil, err
+			}
+			prevReq, err := prevBuild(ctx)
+			if err == nil {
+				req.Header = prevReq.Header.Clone()
+			}
+			return req, nil
 		}
-		nextReq.Header = req.Header.Clone()
-		req = nextReq
 	}
 }

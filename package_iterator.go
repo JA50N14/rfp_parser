@@ -64,17 +64,6 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 			continue
 		}
 
-		// rfpProcessedStatus, err := rfpProcessedCompleteCheck(absPath)
-		// if err != nil {
-		// 	cfg.logger.Error("Error checking if RFP Package has been parsed.", "Directory Name", rfpPackage.Name())
-		// 	return nil, err
-		// }
-
-		// if rfpProcessedStatus {
-		// 	cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
-		// 	continue
-		// }
-
 		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
 		if err != nil {
 			cfg.logger.Error("Error parsing RFP Package", "Directory Name", rfpPackage.Name())

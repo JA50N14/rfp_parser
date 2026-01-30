@@ -15,33 +15,14 @@ const maxRetries = 5
 
 func (cfg *apiConfig) do[T any](ctx context.Context, buildReq func(ctx context.Context) (*http.Request, error)) (T, error) {
 	var zero T
-	var (
-		result T
-		retryable bool
-		wait time.Duration
-		err error
-	)
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		if attempt > 0 {
-			//If server doesn't specify Retry-After, apply exponential backoff
-			if wait == 0 {
-				wait = backoff(attempt) //////////////////Create backoff function
-			}
-
-			select {
-			case <-time.After(wait):
-			case <-ctx.Done():
-				return zero, fmt.Errorf("context error: %w", ctx.Err())
-			}
-		}
-		
 		req, err := buildReq(ctx)
 		if err != nil {
 			return zero, fmt.Errorf("build request: %w", err)
 		}
 
-		result, retryable, wait, err = cfg.doOnce[T](req)
+		result, retryable, wait, err := cfg.doOnce[T](req)
 		if err == nil {
 			return result, nil
 		}
@@ -49,12 +30,21 @@ func (cfg *apiConfig) do[T any](ctx context.Context, buildReq func(ctx context.C
 		if !retryable {
 			return zero, err
 		}
+
+		//exponential backoff if server does not provide Retry-After
+		if wait == 0 {
+			wait = backoff(attempt + 1)
+		}
+
+		select {
+		case <-time.After(wait):
+		case <-ctx.Done():
+			return zero, fmt.Errorf("context error: %w", ctx.Err())
+		}
 	}
 
 	return zero, fmt.Errorf("max retries exceeded")
 }
-
-
 
 func (cfg *apiConfig) doOnce[T any](req *http.Request) (T, bool, time.Duration, error) {
 	var zero T
@@ -122,3 +112,18 @@ func (cfg *apiConfig) listAll[T any](ctx context.Context, buildReq func(ctx cont
 		}
 	}
 }
+
+func backoff(attempt int) time.Duration {
+	base := time.Second
+	max := 30 * time.Second
+
+	d := time.Duration(1<<attempt)
+	if d > max {
+		d = max
+	}
+
+	jitter := time.Duration(rand.Int64n(int64(d / 2)))
+
+	return return d/2 + jitter
+}
+

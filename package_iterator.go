@@ -25,6 +25,8 @@ type KpiResult struct {
 
 type PackageResult struct {
 	PackageName string
+	PackageYear string
+	BusinessUnit string
 	DateParsed  string
 	Results     []KpiResult
 }
@@ -35,7 +37,7 @@ const (
 	xlsxExt           = ".xlsx"
 )
 
-func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
+func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit string) ([]PackageResult, error) {
 	rfpPackages, err := os.ReadDir(cfg.rfpPackageRootDir)
 	if err != nil {
 		cfg.logger.Error("Error reading RFP Packages in root directory", "Error", err)
@@ -64,18 +66,7 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 			continue
 		}
 
-		// rfpProcessedStatus, err := rfpProcessedCompleteCheck(absPath)
-		// if err != nil {
-		// 	cfg.logger.Error("Error checking if RFP Package has been parsed.", "Directory Name", rfpPackage.Name())
-		// 	return nil, err
-		// }
-
-		// if rfpProcessedStatus {
-		// 	cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
-		// 	continue
-		// }
-
-		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
+		packageResult, err := cfg.traverseRfpPackage(absPath, packagesYear, businessUnit, kpiTrackerDefs)
 		if err != nil {
 			cfg.logger.Error("Error parsing RFP Package", "Directory Name", rfpPackage.Name())
 			continue
@@ -85,7 +76,7 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 	return allResults, nil
 }
 
-func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []KpiTrackerDef) (PackageResult, error) {
+func (cfg *apiConfig) traverseRfpPackage(rfpPackage, packageYear, businessUnit string, kpiTrackerDefs []KpiTrackerDef) (PackageResult, error) {
 	kpiResults := CreateKpiResultForRfpPackage(kpiTrackerDefs)
 	stack := []string{rfpPackage}
 	for len(stack) > 0 {
@@ -140,6 +131,8 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 	kpiResults = removeKpiResultsNotFound(kpiResults)
 	packageResult := PackageResult{
 		PackageName: filepath.Base(rfpPackage),
+		PackageYear: packageYear,
+		BusinessUnit: businessUnit,
 		DateParsed:  time.Now().Format("2006-01-02"),
 		Results:     kpiResults,
 	}

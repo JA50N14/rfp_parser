@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"flag"
+	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -20,16 +23,38 @@ type apiConfig struct {
 }
 
 const (
-	RfpPackageRootDir = `/home/jason_macfarlane/rfp_doc_library`
+	RfpPackageRootDir = `/home/jason_macfarlane/2025 RFPs Final/XXX`
 )
 
 func main() {
+	flag.Parse() 
+
+	args := flag.Args()
+	if len(args) != 2 {
+		fmt.Println("Usage: go run ./ <year> <business unit>")
+		os.Exit(1)
+	}
+
+	packagesYear := args[0]
+	businessUnit := strings.ToUpper(args[1])
+
+	if !strings.HasPrefix(packagesYear, "20") {
+		fmt.Println("Type a valid <year>")
+		os.Exit(1)
+	}
+
+	if !strings.Contains(businessUnit, "ABS") && !strings.Contains(businessUnit, "RHS") && !strings.Contains(businessUnit, "FM") {
+		fmt.Println("Type a valid <business unit> - ABS, RHS, FM")
+		os.Exit(1)
+	}
+
+
 	cfg, err := newApiConfig()
 	if err != nil {
 		os.Exit(1)
 	}
 
-	allResults, err := cfg.traverseRfpPackages()
+	allResults, err := cfg.traverseRfpPackages(packagesYear, businessUnit)
 	if err != nil {
 		os.Exit(1)
 	}

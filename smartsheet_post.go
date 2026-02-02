@@ -21,6 +21,8 @@ type Row struct {
 
 const (
 	colDateParsed  int64 = 5732040604077956
+	colYear int64 = 6705789409120132
+	colBusinessUnit int64 = 4453989595434884
 	colPackageName int64 = 3480240790392708
 	colKpiName     int64 = 7983840417763204
 	colKpiCategory int64 = 665491023286148
@@ -75,6 +77,14 @@ func resultsToSmartsheetRows(allResults []PackageResult) []Row {
 					{
 						ColumnId: colDateParsed,
 						Value:    rfpPackage.DateParsed,
+					},
+					{
+						ColumnId: colYear,
+						Value: rfpPackage.PackageYear,
+					},
+					{
+						ColumnId: colBusinessUnit,
+						Value: rfpPackage.BusinessUnit,
 					},
 					{
 						ColumnId: colPackageName,

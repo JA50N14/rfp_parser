@@ -1,45 +1,31 @@
 package graph
 
 import (
-	"net/http"
+	"context"
 	"fmt"
-	"io"
+	"net/http"
 
-	"encoding/json"
+	"github.com/JA50N14/rfp_parser/config"
 )
 
-type GraphListResponse[T any] struct {
-	Value []T `json:"value"`
-	NextLink string `json:"@odata.nextLink"`
-}
 
-type RootDir struct {
+type BusinessUnit struct {
 	ItemID string `json:"id"`
 	Name string `json:"name"`
 }
 
-
 const graphBaseURL = "https://graph.microsoft.com/v1.0"
 
 
-
-
-
-
-
-
-
-
-
-func (cfg *apiConfig) GetRootDirs(ctx context.Context, driveID string) ([]RootDirs, error) {
-	url := fmt.Sprintf("%s/drives/%s/root/children", graphBaseURL, driveID)
+func GetRootDirs(ctx context.Context, cfg *config.ApiConfig, driveID string) ([]BusinessUnit, error) {
+	url := fmt.Sprintf("%s/drives/%s/root/children", graphBaseURL, cfg.GraphDriveID)
 	
-	req, err := NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	result, err := cfg.do[GraphListResponse[RootDir]](req)
+	result, err := do[GraphListResponse[RootDir]](req, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("send request: %w", err)
 	}
@@ -49,20 +35,22 @@ func (cfg *apiConfig) GetRootDirs(ctx context.Context, driveID string) ([]RootDi
 
 
 
-func (cfg *apiConfig) GetAllDirs(driveID, itemsID string) (allDirs, error) {
+func GetItemSubDirs(ctx context.Context, cfg *config.ApiConfig, driveID, itemID string) (allDirs, error) {
 	
 
 }
 
-func (cfg *apiConfig) GetAllUnprocessedDirs(driveID, path string) (error) {
+
+func GetItemSubDirsWithMetadata(ctx context.Context, cfg *config.ApiConfig, driveID, itemID string) (allDirs, error) {
 
 }
 
-func (cfg *apiConfig) Get SingleDir(driveID, path string) (error)  {
 
-}
 
-func (cfg *apiConfig) fetchNextPage[T any](ctx Context.Context, nextLink string) (T, error) {
-	continue
-}
+
+
+
+// func (cfg *apiConfig) fetchNextPage[T any](ctx Context.Context, nextLink string) (T, error) {
+// 	continue
+// }
 

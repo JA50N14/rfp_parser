@@ -1,13 +1,14 @@
 package config
 
 import (
-	"time"
 	"fmt"
-	"os"
 	"log/slog"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/JA50N14/rfp_parser/internal/auth"
+
 )
 
 type ApiConfig struct {
@@ -87,3 +88,4 @@ func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
 	}
 	return cfg, nil
 }
+

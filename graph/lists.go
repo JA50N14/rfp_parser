@@ -43,7 +43,7 @@ func GetRootDirs(ctx context.Context, cfg *config.ApiConfig) ([]Item, error) {
 		if err != nil {
 			return nil, fmt.Errorf("create request: %w", err)
 		}
-		req.Header.Set("Authorization", "Bearer " + cfg.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
 		return req, nil
 	}
 
@@ -70,7 +70,7 @@ func GetItemSubDirs(ctx context.Context, cfg *config.ApiConfig, itemID string) (
 			return nil, fmt.Errorf("create request: %w", err)
 		}
 
-		req.Header.Set("Authorization", "Bearer " + cfg.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
 		return req, nil 
 	}
 
@@ -97,7 +97,7 @@ func GetItemSubDirsWithMetadata(ctx context.Context, cfg *config.ApiConfig, item
 			return nil, fmt.Errorf("create request: %w", err)
 		}
 
-		req.Header.Set("Authorization", "Bearer " + cfg.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
 		return req, nil
 	}
 
@@ -108,10 +108,6 @@ func GetItemSubDirsWithMetadata(ctx context.Context, cfg *config.ApiConfig, item
 
 	return result, nil
 }
-
-
-
-
 
 
 func checkAccessTokenExpiry(cfg *config.ApiConfig) error {
@@ -125,8 +121,3 @@ func checkAccessTokenExpiry(cfg *config.ApiConfig) error {
 	}
 	return nil
 }
-
-
-
-
-

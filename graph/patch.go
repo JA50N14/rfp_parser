@@ -30,7 +30,9 @@ func PatchPackageParsed(ctx context.Context, cfg *config.ApiConfig, itemID strin
 			return nil, fmt.Errorf("create request: %w", err)
 		}
 
-		req.Header.Set("Authorization", "bearer " + cfg.AccessToken)
+		req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
 
 		return req, nil
 	}
@@ -42,5 +44,3 @@ func PatchPackageParsed(ctx context.Context, cfg *config.ApiConfig, itemID strin
 
 	return result, nil
 }
-
-//Figure out retries with a body. I think you need to recreate the body

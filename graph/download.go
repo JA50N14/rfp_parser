@@ -14,7 +14,7 @@ import (
 
 const maxChunks = 10_000
 
-func GetFile(ctx context.Context, cfg *config.ApiConfig, itemID string) (*os.File, error) {
+func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.File, error) {
 	var written int64
 	var totalSize int64 = -1
 	var chunks int64 = 0
@@ -33,7 +33,7 @@ func GetFile(ctx context.Context, cfg *config.ApiConfig, itemID string) (*os.Fil
 	}()
 	
 	for {
-		req, err := CreateGetFileRequest(ctx, cfg, itemID, written)
+		req, err := createGetFileRequest(ctx, cfg, itemID, written)
 		if err != nil {
 			return nil, err
 		}
@@ -182,7 +182,7 @@ func GetFile(ctx context.Context, cfg *config.ApiConfig, itemID string) (*os.Fil
 }
 
 
-func CreateGetFileRequest(ctx context.Context, cfg *config.ApiConfig, itemID string, written int64) (*http.Request, error) {
+func createGetFileRequest(ctx context.Context, cfg *config.ApiConfig, itemID string, written int64) (*http.Request, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
 		return nil, err

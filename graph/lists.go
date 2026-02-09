@@ -56,7 +56,7 @@ func GetRootDirs(ctx context.Context, cfg *config.ApiConfig) ([]Item, error) {
 }
 
 
-func GetItemSubDirs(ctx context.Context, cfg *config.ApiConfig, itemID string) ([]Item, error) {
+func GetItemSubDirs(itemID string, ctx context.Context, cfg *config.ApiConfig) ([]Item, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
 		return nil, err
@@ -82,8 +82,8 @@ func GetItemSubDirs(ctx context.Context, cfg *config.ApiConfig, itemID string) (
 	return result, nil
 }
 
-
-func GetItemSubDirsWithMetadata(ctx context.Context, cfg *config.ApiConfig, itemID string) ([]Package, error) {
+//Use to get list of RFP Packages - Provides metadata needed to mark packages as processed in SharePoint
+func GetItemSubDirsWithMetadata(itemID string, ctx context.Context, cfg *config.ApiConfig) ([]Package, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
 		return nil, err

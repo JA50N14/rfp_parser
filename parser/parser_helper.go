@@ -1,9 +1,15 @@
-package main
+package parser
 
 import (
 	"regexp"
 	"strings"
 )
+
+type KPIResult struct {
+	KPIDef   *KPIDefinition
+	Found    bool
+	Sentence string
+}
 
 type cleanupRule struct {
 	re   *regexp.Regexp
@@ -24,13 +30,13 @@ var cleanupRules = []cleanupRule{
 
 var sentenceRule = regexp.MustCompile(`\. [A-Z]`)
 
-func scanTextWithRegex(text string, kpiResults []KpiResult) []KpiResult {
+func scanTextWithRegex(text string, kpiResults []KPIResult) {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
 
 	for _, item := range textSlice {
 		for i, kpiResult := range kpiResults {
-			for _, re := range kpiResult.Regexps {
+			for _, re := range kpiResult.KPIDef.Regexps {
 				if re.Match([]byte(item)) {
 					sentence := extractSentence(item, re, sentenceRule)
 					if sentence == "" {
@@ -43,7 +49,6 @@ func scanTextWithRegex(text string, kpiResults []KpiResult) []KpiResult {
 			}
 		}
 	}
-	return kpiResults
 }
 
 func cleanText(text string) string {
@@ -72,4 +77,28 @@ func extractSentence(text string, target *regexp.Regexp, boundary *regexp.Regexp
 		rightIdx = targetLoc[1] + rightBound[1] - 2
 	}
 	return text[leftIdx:rightIdx]
+}
+
+
+func CreatePkgResultForRFPPackage(kpiDefs []KPIDefinition) []KPIResult {
+	kpiResults := make([]KPIResult, 0, len(kpiDefs))
+
+	for i := range kpiDefs {
+		kpiResults = append(kpiResults, KPIResult{
+			KPIDef:   &kpiDefs[i],
+			Found:    false,
+			Sentence: "",
+		})
+	}
+	return kpiResults
+}
+
+func RemoveKPIResultsNotFound(kpiResults []KPIResult) []KPIResult {
+	var kpiResultsFound []KPIResult
+	for _, result := range kpiResults {
+		if result.Found {
+			kpiResultsFound = append(kpiResultsFound, result)
+		}
+	}
+	return kpiResultsFound
 }

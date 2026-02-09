@@ -14,7 +14,7 @@ type Parsed struct {
 	Parsed bool `json:"Parsed"`
 }
 
-func PatchPackageParsed(ctx context.Context, cfg *config.ApiConfig, itemID string) (Parsed, error) {
+func PatchPackageParsed(itemID string, ctx context.Context, cfg *config.ApiConfig) (Parsed, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
 		return Parsed{}, err

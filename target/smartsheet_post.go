@@ -1,4 +1,4 @@
-package main
+package target
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/JA50N14/rfp_parser/walk"
 )
 
 type Cell struct {
@@ -64,21 +66,21 @@ func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows []Row) error {
 	return nil
 }
 
-func resultsToSmartsheetRows(allResults []PackageResult) []Row {
+func ResultsToSmartsheetRows(results []walk.PkgResult) []Row {
 	var smartsheetRows []Row
 
-	for _, rfpPackage := range allResults {
-		for _, result := range rfpPackage.Results {
+	for _, pkgResult := range results {
+		for _, kpiResult := range pkgResult.KPIResults {
 			row := Row{
 				ToTop: true,
 				Cells: []Cell{
 					{
 						ColumnId: colDateParsed,
-						Value:    rfpPackage.DateParsed,
+						Value:    kpiResult.DateParsed,
 					},
 					{
 						ColumnId: colPackageName,
-						Value:    rfpPackage.PackageName,
+						Value:    kpiResult.PackageName,
 					},
 					{
 						ColumnId: colKpiName,

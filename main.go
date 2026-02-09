@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"context"
 
 	"github.com/JA50N14/rfp_parser/config"
+	"github.com/JA50N14/rfp_parser/walk"
+	"github.com/JA50N14/rfp_parser/target"
 	"github.com/joho/godotenv"
 )
 
@@ -21,7 +24,7 @@ func main() {
 
 	cfg, err := config.NewApiConfig(logger)
 	if err != nil {
-		logger.Error("Failed to initialize API config", "error", err)
+		logger.Error("failed to initialize API config", "error", err)
 		os.Exit(1)
 	}
 
@@ -29,14 +32,15 @@ func main() {
 	fmt.Printf("ACCESS TOKEN: %s\n", cfg.AccessToken)
 	os.Exit(0)
 ///////////////////////
+	ctx := context.Background()
+	results, err := walk.WalkDocLibrary(ctx, cfg)
+	if err != nil {
+		logger.Error("failed to walk document library", "error", err)
+		os.Exit(1)
+	}
+	
+	smartsheetRows := target.ResultsToSmartsheetRows(results)
 
-
-
-// 	results, err := cfg.traverseRfpPackages()
-// 	if err != nil {
-// 		logger.Error("Failed to traverse RFP Packages", "error", err)
-// 		os.Exit(1)
-// 	}
 
 // 	smartsheetRows := resultsToSmartsheetRows(results)
 

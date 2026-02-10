@@ -149,5 +149,5 @@ func isValidYear(s string) bool {
 	}
 
 	currentYear := time.Now().Year()
-	return year >= 2020 && year <= currentYear+1
+	return year >= 2026 && year <= currentYear+1
 }

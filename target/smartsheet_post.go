@@ -2,12 +2,13 @@ package target
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
+	"github.com/JA50N14/rfp_parser/config"
 	"github.com/JA50N14/rfp_parser/walk"
 )
 
@@ -22,51 +23,46 @@ type Row struct {
 }
 
 const (
-	colDateParsed  int64 = 5732040604077956
-	colPackageName int64 = 3480240790392708
-	colKpiName     int64 = 7983840417763204
-	colKpiCategory int64 = 665491023286148
-	colKpiSentence int64 = 4756959379804036
+	colDateParsed     int64 = 5732040604077956
+	colYear           int64 = 6705789409120132
+	colBusinessUnit   int64 = 4453989595434884
+	colDivision       int64 = 336189612314500
+	colRFPPackageName int64 = 3480240790392708
+	colKPIName        int64 = 7983840417763204
+	colKPICategory    int64 = 665491023286148
+	colKPIContext     int64 = 4756959379804036
 )
 
-func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows []Row) error {
-	client := &http.Client{
-		Timeout: 60 * time.Second,
-	}
-
+func PostToSmartsheets(smartsheetRows []Row, ctx context.Context, cfg *config.ApiConfig) error {
 	reqBody := &bytes.Buffer{}
 	encoder := json.NewEncoder(reqBody)
 	err := encoder.Encode(smartsheetRows)
 	if err != nil {
-		cfg.logger.Error("Error encoding smartsheetRows to json", "Error", err)
 		return err
 	}
 
-	req, err := http.NewRequest("POST", cfg.smartsheetUrl, reqBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.SmartsheetUrl, reqBody)
 	if err != nil {
-		cfg.logger.Error("Error creating request", "Error", err)
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+cfg.bearerTokenSmartsheet)
+	req.Header.Set("Authorization", "Bearer "+cfg.BearerTokenSmartsheet)
 
-	resp, err := client.Do(req)
+	resp, err := cfg.Client.Do(req)
 	if err != nil {
-		cfg.logger.Error("Error making post request to Smartsheets", "Error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		cfg.logger.Error("Non-2xx status code from Smartsheet", "Status", resp.StatusCode, "Body", string(body))
-		return fmt.Errorf("Smartsheet return status %d", resp.StatusCode)
+		return fmt.Errorf("smartsheet return status: %d, body: %s", resp.StatusCode, string(body))
 	}
 	return nil
 }
 
-func ResultsToSmartsheetRows(results []walk.PkgResult) []Row {
+func PrepareResultsForSmartsheetRows(results []walk.PkgResult) []Row {
 	var smartsheetRows []Row
 
 	for _, pkgResult := range results {
@@ -76,23 +72,35 @@ func ResultsToSmartsheetRows(results []walk.PkgResult) []Row {
 				Cells: []Cell{
 					{
 						ColumnId: colDateParsed,
-						Value:    kpiResult.DateParsed,
+						Value:    pkgResult.DateParsed,
 					},
 					{
-						ColumnId: colPackageName,
-						Value:    kpiResult.PackageName,
+						ColumnId: colYear,
+						Value:    pkgResult.Year,
 					},
 					{
-						ColumnId: colKpiName,
-						Value:    fmt.Sprintf("%v", result.Name),
+						ColumnId: colBusinessUnit,
+						Value:    pkgResult.BusinessUnit,
 					},
 					{
-						ColumnId: colKpiCategory,
-						Value:    fmt.Sprintf("%v", result.Category),
+						ColumnId: colDivision,
+						Value:    pkgResult.Division,
 					},
 					{
-						ColumnId: colKpiSentence,
-						Value:    fmt.Sprintf("%v", result.Sentence),
+						ColumnId: colRFPPackageName,
+						Value:    pkgResult.PackageName,
+					},
+					{
+						ColumnId: colKPIName,
+						Value:    fmt.Sprintf("%v", kpiResult.KPIDef.Name),
+					},
+					{
+						ColumnId: colKPICategory,
+						Value:    fmt.Sprintf("%v", kpiResult.KPIDef.Category),
+					},
+					{
+						ColumnId: colKPIContext,
+						Value:    fmt.Sprintf("%v", kpiResult.Sentence),
 					},
 				},
 			}

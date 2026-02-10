@@ -1,24 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
-	"context"
 
 	"github.com/JA50N14/rfp_parser/config"
-	"github.com/JA50N14/rfp_parser/walk"
 	"github.com/JA50N14/rfp_parser/target"
+	"github.com/JA50N14/rfp_parser/walk"
 	"github.com/joho/godotenv"
 )
-
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		logger.Error("failed to load .env file: %w", err)
+		logger.Error("failed to load .env file", "error", err)
 		os.Exit(1)
 	}
 
@@ -28,32 +27,26 @@ func main() {
 		os.Exit(1)
 	}
 
-///////////////////////
+	////////////////////////////////////////////////////////////
 	fmt.Printf("ACCESS TOKEN: %s\n", cfg.AccessToken)
 	os.Exit(0)
-///////////////////////
+	//////////////////////////////////////////////////////////////
+
 	ctx := context.Background()
 	results, err := walk.WalkDocLibrary(ctx, cfg)
 	if err != nil {
-		logger.Error("failed to walk document library", "error", err)
+		cfg.Logger.Error("failed to walk document library", "error", err)
 		os.Exit(1)
 	}
-	
-	smartsheetRows := target.ResultsToSmartsheetRows(results)
 
+	smartsheetRows := target.PrepareResultsForSmartsheetRows(results)
 
-// 	smartsheetRows := resultsToSmartsheetRows(results)
+	err = target.PostToSmartsheets(smartsheetRows, ctx, cfg)
+	if err != nil {
+		cfg.Logger.Error("post to smartsheets failed", "error", err)
+		os.Exit(1)
+	}
 
-// 	err = cfg.postRequestSmartsheets(smartsheetRows)
-// 	if err != nil {
-// 		logger.Error("Failed to post to Smartsheets", "error", err)
-// 		os.Exit(1)
-// 	}
-
-// 	cfg.logger.Info("RFP Packages successfully parsed and posted to Smartsheets")
-// 	os.Exit(0)
-
+	cfg.Logger.Info("RFP Packages successfully parsed and posted to smartsheets")
+	os.Exit(0)
 }
-
-
-

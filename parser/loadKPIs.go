@@ -14,7 +14,7 @@ type KPIDefinition struct {
 	RegexStrs []string         `json:"regexps"` //temporary holder
 }
 
-const KPIDefPath = "./kpiDefinitions.json"
+const KPIDefPath = "./parser/kpiDefinitions.json"
 
 func LoadKPIDefinitions() ([]KPIDefinition, error) {
 	jsonFile, err := os.Open(KPIDefPath)

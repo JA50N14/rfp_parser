@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -27,16 +26,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	////////////////////////////////////////////////////////////
-	fmt.Printf("ACCESS TOKEN: %s\n", cfg.AccessToken)
-	os.Exit(0)
-	//////////////////////////////////////////////////////////////
-
 	ctx := context.Background()
 	results, err := walk.WalkDocLibrary(ctx, cfg)
 	if err != nil {
 		cfg.Logger.Error("failed to walk document library", "error", err)
 		os.Exit(1)
+	}
+
+	if len(results) == 0 {
+		cfg.Logger.Info("there are currently no new RFP Packages to process")
+		os.Exit(0)
 	}
 
 	smartsheetRows := target.PrepareResultsForSmartsheetRows(results)
@@ -47,6 +46,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg.Logger.Info("RFP Packages successfully parsed and posted to smartsheets")
+	cfg.Logger.Info("RFP Package(s) successfully parsed and posted to smartsheets")
 	os.Exit(0)
 }

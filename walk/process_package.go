@@ -40,8 +40,8 @@ func ProcessRFPPackage(pkg graph.Package, path WalkPath, walkCtx *WalkContext) (
 	kpiResults = parser.RemoveKPIResultsNotFound(kpiResults)
 
 	pkgResult := PkgResult{
-		PackageName:  pkg.ID,
-		DateParsed:   time.Now().Format("2026-01-02"),
+		PackageName:  pkg.Name,
+		DateParsed:   time.Now().Format("2006-01-02"),
 		Year:         path.Year,
 		BusinessUnit: path.BusinessUnit,
 		Division:     path.Division,
@@ -103,5 +103,3 @@ func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *Wal
 
 	return nil
 }
-
-

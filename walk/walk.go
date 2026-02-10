@@ -70,8 +70,7 @@ func WalkDocLibrary(ctx context.Context, cfg *config.ApiConfig) ([]PkgResult, er
 			Year: dir.Name,
 		}
 
-		level := LevelYear
-		if err := Walk(dir, level, path, walkCtx); err != nil {
+		if err := Walk(dir, LevelYear, path, walkCtx); err != nil {
 			return nil, err
 		}
 	}
@@ -86,10 +85,11 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 		if err != nil {
 			return err
 		}
+
 		for _, item := range items {
 			nextPath := path
 			nextPath.BusinessUnit = item.Name
-			return Walk(item, LevelBusinessUnit, nextPath, walkCtx)
+			Walk(item, LevelBusinessUnit, nextPath, walkCtx)
 		}
 	case LevelBusinessUnit:
 		items, err := graph.GetItemSubDirs(item.ID, walkCtx.Ctx, walkCtx.Cfg)
@@ -99,7 +99,7 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 		for _, item := range items {
 			nextPath := path
 			nextPath.Division = item.Name
-			return Walk(item, LevelDivision, nextPath, walkCtx)
+			Walk(item, LevelDivision, nextPath, walkCtx)
 		}
 	case LevelDivision:
 		pkgs, err := graph.GetItemSubDirsWithMetadata(item.ID, walkCtx.Ctx, walkCtx.Cfg)
@@ -134,7 +134,7 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 func removeProcessedPackages(pkgs []graph.Package) ([]graph.Package, error) {
 	unprocessedPkgs := make([]graph.Package, 0)
 	for _, pkg := range pkgs {
-		if pkg.Fields.ListParsed == false {
+		if pkg.ListItem.Fields.Parsed == false {
 			unprocessedPkgs = append(unprocessedPkgs, pkg)
 		}
 	}
@@ -149,5 +149,5 @@ func isValidYear(s string) bool {
 	}
 
 	currentYear := time.Now().Year()
-	return year >= 2026 && year <= currentYear+1
+	return year >= 2025 && year <= currentYear+1
 }

@@ -8,30 +8,22 @@ import (
 	"time"
 
 	"github.com/JA50N14/rfp_parser/internal/auth"
-
 )
 
 type ApiConfig struct {
 	BearerTokenSmartsheet string
 	SmartsheetUrl         string
-	RFPPackageRootDir     string
 	AccessToken           string
 	AccessTokenExpiresAt  time.Time
-	GraphSiteID string
-	GraphLibraryName string
-	GraphDriveID string
+	GraphSiteID           string
+	GraphLibraryName      string
+	GraphDriveID          string
 	ExtMap                map[string]string
 	Logger                *slog.Logger
 	Client                *http.Client
 }
 
-const (
-	RfpPackageRootDir = `/home/jason_macfarlane/rfp_doc_library`
-)
-
-
 func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
-
 
 	bearerTokenSmartsheet := os.Getenv("SMARTSHEET_TOKEN")
 	if bearerTokenSmartsheet == "" {
@@ -42,7 +34,7 @@ func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
 	if smartsheetUrl == "" {
 		return nil, fmt.Errorf("SMARTSHEET_URL .env variable not set")
 	}
-	
+
 	graphSiteID := os.Getenv("GRAPH_SITE_ID")
 	if graphSiteID == "" {
 		return nil, fmt.Errorf("SHAREPOINT_SITE_ID .env variable not set")
@@ -76,16 +68,14 @@ func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
 	cfg := &ApiConfig{
 		BearerTokenSmartsheet: bearerTokenSmartsheet,
 		SmartsheetUrl:         smartsheetUrl,
-		RFPPackageRootDir:     RfpPackageRootDir,
 		ExtMap:                extMap,
 		Logger:                logger,
 		Client:                client,
 		AccessToken:           tokenResp.AccessToken,
 		AccessTokenExpiresAt:  tokenExpiresAt,
-		GraphSiteID: graphSiteID,
-		GraphLibraryName: graphLibraryName,
-		GraphDriveID: graphDriveID,
+		GraphSiteID:           graphSiteID,
+		GraphLibraryName:      graphLibraryName,
+		GraphDriveID:          graphDriveID,
 	}
 	return cfg, nil
 }
-

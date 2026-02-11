@@ -1,4 +1,20 @@
-1.Point the const variable "RfpPackageRootDir" in main.go to a directory containing RFP Packages for a specific Business Unit.
-2.Each sub-folder in the "RfpPackageRootDir" path must represent a single RFP Package that was issued by the potential client in the same year.
-3.Run the program with: go run ./ Year BusinessUnit
-    -Example: go run ./ 2025 ABS
+# Request For Proposal Parser
+
+## Overview
+This version of the application walks through a specified root directory locally on your machine, parses each docx and xlsx file within each RFP Package directory that is located within the specified root directory, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
+
+## Installation
+1. Download the source code for this client app
+2. Create a Smartsheet with the following columns (in this order): Date Parsed, Year, Business Unit, Division, RFP Package Name, KPI Name, KPI Category, KPI Context
+3. Create a directory on your file system. Within this root directory, place all RFP Packages that need to be parsed for a specified year (i.e. 2026) and Business Unit (i.e. "Facilities Management").
+4. Create a .env file. Within the .env file add the following variables:
+  - SMARTSHEET_TOKEN - A Smartsheet access token that can be generated in Smartsheet
+  - SMARTSHEET_URL - The URL of the Smartsheet to push the KPI data into
+5. In smartsheet_post.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
+6. In parser/parser_xlsx.go, update the "sharedStringsFilePath" constant variable. This is a temporary file that is created and deleted for larger xlsx files during the parsing process
+7. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx and xlsx files
+8. In main.go, update the "RfpPackageRootDir" const variable to the location of the root directory created in step #3
+9. Run program from this applications root directory: go run ./ Year Business Unit
+  - Example: go run ./ 2026 FM
+
+

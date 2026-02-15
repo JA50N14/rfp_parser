@@ -2,6 +2,7 @@ package walk
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -21,6 +22,7 @@ type PkgResult struct {
 const (
 	docxExt = ".docx"
 	xlsxExt = ".xlsx"
+	pdfExt  = ".pdf"
 )
 
 func ProcessRFPPackage(pkg graph.Package, path WalkPath, walkCtx *WalkContext) (PkgResult, error) {
@@ -60,6 +62,8 @@ func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *Wal
 		if err != nil {
 			return err
 		}
+		defer f.Close()
+		defer os.Remove(f.Name())
 
 		info, err := f.Stat()
 		if err != nil {
@@ -76,6 +80,8 @@ func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *Wal
 		if err != nil {
 			return err
 		}
+		defer f.Close()
+		defer os.Remove(f.Name())
 
 		info, err := f.Stat()
 		if err != nil {
@@ -84,6 +90,19 @@ func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *Wal
 
 		if err := parser.XlsxParser(f, info.Size(), kpiResults); err != nil {
 			return fmt.Errorf("error parsing xlsx file: Item ID: %s, Name: %s, error: %w", item.ID, item.Name, err)
+		}
+		return nil
+
+	case pdfExt:
+		f, err := graph.GetFile(item.ID, walkCtx.Ctx, walkCtx.Cfg)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		defer os.Remove(f.Name())
+
+		if err := parser.PdfParser(walkCtx.Ctx, f, kpiResults); err != nil {
+			return fmt.Errorf("error parsing pdf file: Item ID: %s, Name: %s, error: %w", item.ID, item.Name, err)
 		}
 		return nil
 

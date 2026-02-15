@@ -430,7 +430,7 @@
         "name": "Indigenous employment targets",
         "category": "Social Metrics",
         "regexps": [
-            "(?i)\\bindigenous employment target\\b"
+            "(?i)\\bindigenous employment targets\\b"
         ],
         "found": false
     },
@@ -438,7 +438,7 @@
         "name": "Indigenous procurement targets",
         "category": "Social Metrics",
         "regexps": [
-            "(?i)\\bindigenous procurement target\\b"
+            "(?i)\\bindigenous procurement targets\\b"
         ],
         "found": false
     },
@@ -446,7 +446,7 @@
         "name": "Diverse supplier targets",
         "category": "Social Metrics",
         "regexps": [
-            "(?i)\\bdiverse supplier target\\b"
+            "(?i)\\bdiverse supplier targets\\b"
         ],
         "found": false
     },
@@ -454,7 +454,7 @@
         "name": "Local supplier targets",
         "category": "Social Metrics",
         "regexps": [
-            "(?i)\\blocal supplier target\\b"
+            "(?i)\\blocal supplier targets\\b"
         ],
         "found": false
     }

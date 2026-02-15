@@ -28,6 +28,7 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 	success := false
 	defer func() {
 		if !success {
+			tmp.Close()
 			os.Remove(tmp.Name())
 		}
 	}()
@@ -100,7 +101,6 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 					fatal = true
 					return
 				}
-
 
 				n, copyErr = io.Copy(tmp, resp.Body)
 				written += n

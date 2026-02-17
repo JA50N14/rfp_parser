@@ -1,7 +1,7 @@
 # Request For Proposal Parser
 
 ## Overview
-This version of the application walks through a specified root directory locally on your machine, parses each docx and xlsx file within each RFP Package directory that is located within the specified root directory, and then posts the data into Smartsheets. This version accepts arguments (Year & Business Unit). These arguments are inputted into Smartsheet for each record. Within Smartsheets, you can easily create dashboards based off this data.
+This version of the application walks through a specified root directory locally on your machine, parses each docx, xlsx, and pdf file within each RFP Package directory that is located within the specified root directory, and then posts the data into Smartsheets. This version accepts arguments (Year & Business Unit). These arguments are inputted into Smartsheet for each record. Within Smartsheets, you can easily create dashboards based off this data.
 
 ## Installation
 1. Download the source code for this client app

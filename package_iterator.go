@@ -35,6 +35,7 @@ const (
 	kpiTrackerDefPath = "./kpiTracker.json"
 	docxExt           = ".docx"
 	xlsxExt           = ".xlsx"
+	pdfExt = ".pdf"
 )
 
 func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit string) ([]PackageResult, error) {
@@ -116,9 +117,11 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage, packageYear, businessUnit s
 
 			switch path.Ext(entry.Name()) {
 			case docxExt:
-				kpiResults, err = docxParser(f, info.Size(), kpiResults)
+				err = docxParser(f, info.Size(), kpiResults)
 			case xlsxExt:
-				kpiResults, err = cfg.xlsxParser(f, info.Size(), kpiResults)
+				err = cfg.xlsxParser(f, info.Size(), kpiResults)
+			case pdfExt:
+				err = cfg.pdfParser(f, kpiResults)
 			default:
 				continue
 			}

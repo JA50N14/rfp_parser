@@ -94,6 +94,7 @@ func newApiConfig() (*apiConfig, error) {
 	extMap := map[string]string{
 		".docx": ".docx",
 		".xlsx": ".xlsx",
+		".pdf": ",pdf",
 	}
 
 	cfg := &apiConfig{

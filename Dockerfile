@@ -1,36 +1,41 @@
-# Stage 1: Build the Go binary
-FROM golang:1.24.1-alpine AS builder
+# Stage 1 — Build the Go function
+FROM golang:1.24.1-bookworm AS builder
 
-# Install necessary build tools
-RUN apk add --no-cache git build-base
+WORKDIR /src
 
-# Set the working directory
-WORKDIR /app
+# Install git (needed for go mod download if using GitHub deps)
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-# Copy go.mod and go.sum first (for caching dependencies)
+# Cache dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
-# Build the Go binary for Linux
-RUN go build -o rfp-parser .
+# Build Linux binary (Azure runs Linux)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-s -w" -o function
 
-# Stage 2: Create the minimal runtime image
-FROM alpine:3.18
 
-# Install poppler-utils (provides pdftotext)
-RUN apk add --no-cache poppler-utils bash ca-certificates
+# Stage 2 — Azure Functions Runtime
+FROM mcr.microsoft.com/azure-functions/go:4-go1.24
 
-# Set the working directory
-WORKDIR /app
+# Install poppler-utils for pdftotext
+RUN apt-get update && apt-get install -y poppler-utils ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Copy the Go binary from the builder stage
-COPY --from=builder /app/rfp-parser .
+# Set working directory required by Azure Functions
+WORKDIR /home/site/wwwroot
 
-# Make the binary executable
-RUN chmod +x rfp-parser
+# Copy built binary from builder stage
+COPY --from=builder /src/function .
 
-# Set the entrypoint (for Azure Functions Timer, this will be executed on container start)
-ENTRYPOINT ["./rfp-parser"]
+# Copy function metadata (host.json + function folders)
+COPY host.json ./
+COPY timer_function ./timer_function
+
+# Set Azure Functions environment variables
+ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+
+# Azure Functions runtime starts automatically

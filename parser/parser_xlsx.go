@@ -186,6 +186,7 @@ func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KPIResult) error
 		if err != nil {
 			return err
 		}
+		defer ssFile.Close()
 		defer os.Remove(ssFile.Name())
 
 		//Fill up ssFile and ssOffsets
@@ -296,13 +297,3 @@ func parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KPIResult) error
 	}
 	return nil
 }
-
-//<c> - cell element
-// r = cell reference (i.e. A1, B1, etc.)
-// t = cell type ("s" means "shared string", i.e. text stored in sharedStrings.xml)
-//<v> = value (an integer index if t="s", or a literal value otherwise)
-
-//xl/sharedStrings.xml
-//<si> = Shared string item
-//<t> = Actual text
-//If a cell has t="s" and <v>1</v>, that means the cell text is in sharedStrings.xml file as the second <si>

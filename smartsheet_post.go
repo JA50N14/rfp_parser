@@ -19,12 +19,21 @@ type Row struct {
 	Cells []Cell `json:"cells"`
 }
 
+// const (
+// 	colDateParsed  int64 = 5732040604077956
+// 	colPackageName int64 = 3480240790392708
+// 	colKpiName     int64 = 7983840417763204
+// 	colKpiCategory int64 = 665491023286148
+// 	colKpiSentence int64 = 4756959379804036
+// )
+
+//Test Smartsheet Column ID's
 const (
-	colDateParsed  int64 = 5732040604077956
-	colPackageName int64 = 3480240790392708
-	colKpiName     int64 = 7983840417763204
-	colKpiCategory int64 = 665491023286148
-	colKpiSentence int64 = 4756959379804036
+	colDateParsed     int64 = 4915691982114692
+	colPackageName int64 = 6041591888957316
+	colKpiName        int64 = 3789792075272068
+	colKpiCategory    int64 = 8293391702642564
+	colKpiSentence     int64 = 975042308165508
 )
 
 func (cfg *apiConfig) postRequestSmartsheets(smartsheetRows []Row) error {

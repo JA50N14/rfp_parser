@@ -20,7 +20,7 @@ type apiConfig struct {
 }
 
 const (
-	RfpPackageRootDir = `/home/jason_macfarlane/rfp_testtt`
+	RfpPackageRootDir = `/home/jason_macfarlane/XXXX`
 )
 
 func main() {
@@ -69,6 +69,7 @@ func newApiConfig() (*apiConfig, error) {
 	extMap := map[string]string{
 		".docx": ".docx",
 		".xlsx": ".xlsx",
+		".pdf": ".pdf",
 	}
 
 	cfg := &apiConfig{

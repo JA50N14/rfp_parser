@@ -6,15 +6,14 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"context"
 )
 
-func (cfg *apiConfig) pdfParser(f *os.File, kpiResults []KPIResult) error {
+func (cfg *apiConfig) pdfParser(f *os.File, kpiResults []KpiResult) error {
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		return err
 	} 
 
-	cmd := exec.CommandContext(ctx, "pdftotext", "-", "-")
+	cmd := exec.Command("pdftotext", "-", "-")
 	cmd.Stdin = f
 
 	stdoutPipe, err := cmd.StdoutPipe()

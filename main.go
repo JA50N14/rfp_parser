@@ -23,20 +23,21 @@ type apiConfig struct {
 }
 
 const (
-	RfpPackageRootDir = `/home/jason_macfarlane/2025 RFPs Final/XXX`
+	RfpPackageRootDir = `/home/jason_macfarlane/rfp_testtt`
 )
 
 func main() {
 	flag.Parse() 
 
 	args := flag.Args()
-	if len(args) != 2 {
-		fmt.Println("Usage: go run ./ <year> <business unit>")
+	if len(args) < 3 {
+		fmt.Println("Usage: go run ./ <year> <business unit> <division>")
 		os.Exit(1)
 	}
 
 	packagesYear := args[0]
 	businessUnit := strings.ToUpper(args[1])
+	division := strings.Join(args[2:], " ")
 
 	if !strings.HasPrefix(packagesYear, "20") {
 		fmt.Println("Type a valid <year>")
@@ -54,7 +55,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	allResults, err := cfg.traverseRfpPackages(packagesYear, businessUnit)
+	allResults, err := cfg.traverseRfpPackages(packagesYear, businessUnit, division)
 	if err != nil {
 		os.Exit(1)
 	}

@@ -27,6 +27,7 @@ type PackageResult struct {
 	PackageName string
 	PackageYear string
 	BusinessUnit string
+	Division string
 	DateParsed  string
 	Results     []KpiResult
 }
@@ -38,7 +39,7 @@ const (
 	pdfExt = ".pdf"
 )
 
-func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit string) ([]PackageResult, error) {
+func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit, division string) ([]PackageResult, error) {
 	rfpPackages, err := os.ReadDir(cfg.rfpPackageRootDir)
 	if err != nil {
 		cfg.logger.Error("Error reading RFP Packages in root directory", "Error", err)
@@ -67,7 +68,7 @@ func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit string) ([]
 			continue
 		}
 
-		packageResult, err := cfg.traverseRfpPackage(absPath, packagesYear, businessUnit, kpiTrackerDefs)
+		packageResult, err := cfg.traverseRfpPackage(absPath, packagesYear, businessUnit, division, kpiTrackerDefs)
 		if err != nil {
 			cfg.logger.Error("Error parsing RFP Package", "Directory Name", rfpPackage.Name())
 			continue
@@ -77,7 +78,7 @@ func (cfg *apiConfig) traverseRfpPackages(packagesYear, businessUnit string) ([]
 	return allResults, nil
 }
 
-func (cfg *apiConfig) traverseRfpPackage(rfpPackage, packageYear, businessUnit string, kpiTrackerDefs []KpiTrackerDef) (PackageResult, error) {
+func (cfg *apiConfig) traverseRfpPackage(rfpPackage, packageYear, businessUnit, division string, kpiTrackerDefs []KpiTrackerDef) (PackageResult, error) {
 	kpiResults := CreateKpiResultForRfpPackage(kpiTrackerDefs)
 	stack := []string{rfpPackage}
 	for len(stack) > 0 {
@@ -136,6 +137,7 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage, packageYear, businessUnit s
 		PackageName: filepath.Base(rfpPackage),
 		PackageYear: packageYear,
 		BusinessUnit: businessUnit,
+		Division: division,
 		DateParsed:  time.Now().Format("2006-01-02"),
 		Results:     kpiResults,
 	}
@@ -202,33 +204,3 @@ func removeKpiResultsNotFound(kpiResults []KpiResult) []KpiResult {
 	}
 	return kpiResultsFound
 }
-
-// func rfpProcessedCompleteCheck(rfpRootDir string) (bool, error) {
-// 	rfpPackage, err := os.ReadDir(rfpRootDir)
-// 	if err != nil {
-// 		return false, fmt.Errorf("Could not open RFP Package: %w", err)
-// 	}
-// 	for _, item := range rfpPackage {
-// 		if !item.IsDir() && item.Name() == "__processed.txt" {
-// 			return true, nil
-// 		}
-// 	}
-// 	return false, nil
-// }
-
-
-
-//Plan for handling files via http response:
-	//Send a http request for files to Microsoft Graph API
-		//Read how Microsoft Graph API works and how to retrieve files one at a time
-		//Ensure my program accounts for obtaining files in sub-folders
-		//Ensure all files in the root dir get processed as one package.
-		//Ensure to only process root directories that have not already been processed
-	//Create and open a tmp file
-		//tmp, err := os.CreateTemp("", "upload-*.docx or .xlsx")
-		//defer os.Remove(tmp.Name())
-		//defer tmp.Close()
-		//io.Copy(tmp, response.Body)
-		//info, err := tmp.Stat()
-	//call parser(tmp, info.Size(), ...)
-		//zip.NewReader(r, size)

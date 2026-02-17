@@ -35,10 +35,10 @@ const (
 	colYear           int64 = 2663892168429444
 	colBusinessUnit   int64 = 7167491795799940
 	colDivision       int64 = 1537992261586820
-	colRFPPackageName int64 = 6041591888957316
-	colKPIName        int64 = 3789792075272068
-	colKPICategory    int64 = 8293391702642564
-	colKPIContext     int64 = 975042308165508
+	colPackageName int64 = 6041591888957316
+	colKpiName        int64 = 3789792075272068
+	colKpiCategory    int64 = 8293391702642564
+	colKpiSentence     int64 = 975042308165508
 )
 
 
@@ -98,6 +98,10 @@ func resultsToSmartsheetRows(allResults []PackageResult) []Row {
 					{
 						ColumnId: colBusinessUnit,
 						Value: rfpPackage.BusinessUnit,
+					},
+					{
+						ColumnId: colDivision,
+						Value: rfpPackage.Division,
 					},
 					{
 						ColumnId: colPackageName,

@@ -11,9 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	sharedStringsFilePath = `/home/jason_macfarlane/tmp`
-)
 
 func (cfg *apiConfig) xlsxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
 	zr, err := zip.NewReader(r, size)
@@ -184,10 +181,11 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 
 		var sb strings.Builder
 		var inText bool
-		ssFile, err = os.CreateTemp(sharedStringsFilePath, "sharedStrings")
+		ssFile, err = os.CreateTemp("", "sharedStrings*")
 		if err != nil {
 			return kpiResults, fmt.Errorf("Error created sharedStrings temporary file: %w", err)
 		}
+		defer ssFile.Close()
 		defer os.Remove(ssFile.Name())
 
 		//Fill up ssFile and ssOffsets

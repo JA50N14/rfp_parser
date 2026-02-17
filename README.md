@@ -1,7 +1,7 @@
 # Request For Proposal Parser
 
 ## Overview
-This application walks a Microsoft SharePoint Document Library to download docx and xlsx files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
+This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
 
 ## Installation
 1. Download the source code for this client app
@@ -38,7 +38,6 @@ This application walks a Microsoft SharePoint Document Library to download docx 
   - GRAPH_DRIVE_ID - The Drive ID of the Document Library to walk
   - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
 7. In target/smartsheet_post.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
-8. In parser/parser_xlsx.go, update the "sharedStringsFilePath" constant variable. This is a temporary file that is created and deleted for larger xlsx files during the parsing process
-9. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx and xlsx files
-10. Run program from this applications root directory: go run ./
+8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx and xlsx files
+9. Run program from this applications root directory: go run ./
 

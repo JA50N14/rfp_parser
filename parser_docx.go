@@ -9,10 +9,10 @@ import (
 )
 
 
-func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
+func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
-		return kpiResults, fmt.Errorf("Error creating zip reader for docx file: %w", err)
+		return fmt.Errorf("Error creating zip reader for docx file: %w", err)
 	}
 
 	var documentFile *zip.File
@@ -24,12 +24,12 @@ func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult,
 	}
 
 	if documentFile == nil {
-		return kpiResults, fmt.Errorf("word/document.xml not found")
+		return fmt.Errorf("word/document.xml not found")
 	}
 
 	rc, err := documentFile.Open()
 	if err != nil {
-		return kpiResults, fmt.Errorf("Error opening word/document.xml: %w", err)
+		return fmt.Errorf("Error opening word/document.xml: %w", err)
 	}
 	defer rc.Close()
 
@@ -46,7 +46,7 @@ func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult,
 			break
 		}
 		if err != nil {
-			return kpiResults, err
+			return err
 		}
 
 		switch tokElem := tok.(type) {
@@ -66,12 +66,12 @@ func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult,
 			}
 			if tokElem.Name.Local == "p" {
 				output.WriteString("\n")
-				kpiResults = scanTextWithRegex(output.String(), kpiResults)
+				scanTextWithRegex(output.String(), kpiResults)
 				output.Reset()
 			}
 		}
 	}
-	return kpiResults, nil
+	return nil
 }
 
 

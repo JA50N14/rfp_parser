@@ -24,7 +24,7 @@ var cleanupRules = []cleanupRule{
 
 var sentenceRule = regexp.MustCompile(`\. [A-Z]`)
 
-func scanTextWithRegex(text string, kpiResults []KpiResult) []KpiResult {
+func scanTextWithRegex(text string, kpiResults []KpiResult) {
 	text = cleanText(text)
 	textSlice := strings.Split(text, "\n")
 
@@ -43,7 +43,7 @@ func scanTextWithRegex(text string, kpiResults []KpiResult) []KpiResult {
 			}
 		}
 	}
-	return kpiResults
+	return
 }
 
 func cleanText(text string) string {

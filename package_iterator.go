@@ -33,6 +33,7 @@ const (
 	kpiTrackerDefPath = "./kpiTracker.json"
 	docxExt           = ".docx"
 	xlsxExt           = ".xlsx"
+	pdfExt = ".pdf"
 )
 
 func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
@@ -63,17 +64,6 @@ func (cfg *apiConfig) traverseRfpPackages() ([]PackageResult, error) {
 			cfg.logger.Info("File in the RFP Packages root directory.", "Filename", rfpPackage.Name())
 			continue
 		}
-
-		// rfpProcessedStatus, err := rfpProcessedCompleteCheck(absPath)
-		// if err != nil {
-		// 	cfg.logger.Error("Error checking if RFP Package has been parsed.", "Directory Name", rfpPackage.Name())
-		// 	return nil, err
-		// }
-
-		// if rfpProcessedStatus {
-		// 	cfg.logger.Info("RFP Package already processed.", "Directory Name", rfpPackage.Name())
-		// 	continue
-		// }
 
 		packageResult, err := cfg.traverseRfpPackage(absPath, kpiTrackerDefs)
 		if err != nil {
@@ -125,9 +115,11 @@ func (cfg *apiConfig) traverseRfpPackage(rfpPackage string, kpiTrackerDefs []Kpi
 
 			switch path.Ext(entry.Name()) {
 			case docxExt:
-				kpiResults, err = docxParser(f, info.Size(), kpiResults)
+				err = docxParser(f, info.Size(), kpiResults)
 			case xlsxExt:
-				kpiResults, err = cfg.xlsxParser(f, info.Size(), kpiResults)
+				err = cfg.xlsxParser(f, info.Size(), kpiResults)
+			case pdfExt:
+				err = cfg.pdfParser(f, kpiResults)
 			default:
 				continue
 			}

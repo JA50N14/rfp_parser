@@ -12,29 +12,29 @@ import (
 )
 
 
-func (cfg *apiConfig) xlsxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) xlsxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
-		return kpiResults, fmt.Errorf("Error creating zip reader for xlsx file: %w", err)
+		return fmt.Errorf("Error creating zip reader for xlsx file: %w", err)
 	}
 
 	var sharedStrings []string
 	if size <= int64(104857600) {
 		sharedStrings, err = loadSharedStrings(zr)
 		if err != nil {
-			return kpiResults, err
+			return err
 		}
-		kpiResults, err = cfg.parseWithSharedStringsSlice(zr, sharedStrings, kpiResults)
+		err = cfg.parseWithSharedStringsSlice(zr, sharedStrings, kpiResults)
 		if err != nil {
-			return kpiResults, err
+			return err
 		}
 	} else {
-		kpiResults, err = cfg.parseWithSharedStringsTmpFile(zr, kpiResults)
+		err = cfg.parseWithSharedStringsTmpFile(zr, kpiResults)
 		if err != nil {
-			return kpiResults, err
+			return err
 		}
 	}
-	return kpiResults, nil
+	return nil
 }
 
 func loadSharedStrings(zr *zip.Reader) ([]string, error) {
@@ -94,7 +94,7 @@ func loadSharedStrings(zr *zip.Reader) ([]string, error) {
 	return sharedStrings, nil
 }
 
-func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings []string, kpiResults []KpiResult) error {
 	for _, f := range zr.File {
 		if strings.Contains(f.Name, "worksheets/sheet") {
 			rc, err := f.Open()
@@ -144,9 +144,9 @@ func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings 
 								continue
 							}
 							text := sharedStrings[idx]
-							kpiResults = scanTextWithRegex(text, kpiResults)
+							scanTextWithRegex(text, kpiResults)
 						} else {
-							kpiResults = scanTextWithRegex(val, kpiResults)
+							scanTextWithRegex(val, kpiResults)
 						}
 					}
 				}
@@ -154,10 +154,10 @@ func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings 
 			rc.Close()
 		}
 	}
-	return kpiResults, nil
+	return nil
 }
 
-func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) ([]KpiResult, error) {
+func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults []KpiResult) error {
 	var sharedStringsFile *zip.File
 	for _, f := range zr.File {
 		if strings.HasSuffix(f.Name, "sharedStrings.xml") {
@@ -174,7 +174,7 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 	if hasSharedStrings {
 		rc, err := sharedStringsFile.Open()
 		if err != nil {
-			return kpiResults, fmt.Errorf("Error opening sharedStrings.xml: %w", err)
+			return fmt.Errorf("Error opening sharedStrings.xml: %w", err)
 		}
 
 		decoder := xml.NewDecoder(rc)
@@ -183,7 +183,7 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 		var inText bool
 		ssFile, err = os.CreateTemp("", "sharedStrings*")
 		if err != nil {
-			return kpiResults, fmt.Errorf("Error created sharedStrings temporary file: %w", err)
+			return fmt.Errorf("Error created sharedStrings temporary file: %w", err)
 		}
 		defer ssFile.Close()
 		defer os.Remove(ssFile.Name())
@@ -195,7 +195,7 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 				break
 			}
 			if err != nil {
-				return kpiResults, fmt.Errorf("Error decoding token in sharedStrings.xml: %w", err)
+				return fmt.Errorf("Error decoding token in sharedStrings.xml: %w", err)
 			}
 
 			switch tokElem := tok.(type) {
@@ -230,7 +230,7 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 		if strings.Contains(f.Name, "worksheets/sheet") {
 			rc, err := f.Open()
 			if err != nil {
-				return kpiResults, err
+				return err
 			}
 			decoder := xml.NewDecoder(rc)
 			var inV bool
@@ -274,20 +274,20 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 							}
 							_, err = ssFile.Seek(ssOffsets[valIdx], io.SeekStart)
 							if err != nil {
-								return kpiResults, fmt.Errorf("Error retrieving text from sharedStrings tmp file: %w", err)
+								return fmt.Errorf("Error retrieving text from sharedStrings tmp file: %w", err)
 							}
 							reader := bufio.NewReader(ssFile)
 							line, err := reader.ReadString('\n')
 							if err != nil && err != io.EOF {
-								return kpiResults, fmt.Errorf("Error reading sharedString text from sharedString file: %w", err)
+								return fmt.Errorf("Error reading sharedString text from sharedString file: %w", err)
 							}
 							parts := strings.SplitN(line, "|", 2)
 							if len(parts) != 2 {
-								return kpiResults, fmt.Errorf("Invalid text format in sharedString tmp file: %w", err)
+								return fmt.Errorf("Invalid text format in sharedString tmp file: %w", err)
 							}
-							kpiResults = scanTextWithRegex(strings.TrimSpace(parts[1]), kpiResults)
+							scanTextWithRegex(strings.TrimSpace(parts[1]), kpiResults)
 						} else {
-							kpiResults = scanTextWithRegex(val, kpiResults)
+							scanTextWithRegex(val, kpiResults)
 						}
 					}
 				}
@@ -295,7 +295,7 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 			rc.Close()
 		}
 	}
-	return kpiResults, nil
+	return nil
 }
 
 //<c> - cell element

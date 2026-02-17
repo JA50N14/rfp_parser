@@ -23,7 +23,7 @@ type apiConfig struct {
 }
 
 const (
-	RfpPackageRootDir = `/home/jason_macfarlane/rfp_testtt`
+	RfpPackageRootDir = `/home/jason_macfarlane/XXXX`
 )
 
 func main() {

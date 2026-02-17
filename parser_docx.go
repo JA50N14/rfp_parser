@@ -66,7 +66,7 @@ func docxParser(r io.ReaderAt, size int64, kpiResults []KpiResult) error {
 			}
 			if tokElem.Name.Local == "p" {
 				output.WriteString("\n")
-				kpiResults = scanTextWithRegex(output.String(), kpiResults)
+				scanTextWithRegex(output.String(), kpiResults)
 				output.Reset()
 			}
 		}

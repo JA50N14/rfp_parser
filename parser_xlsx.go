@@ -144,9 +144,9 @@ func (cfg *apiConfig) parseWithSharedStringsSlice(zr *zip.Reader, sharedStrings 
 								continue
 							}
 							text := sharedStrings[idx]
-							kpiResults = scanTextWithRegex(text, kpiResults)
+							scanTextWithRegex(text, kpiResults)
 						} else {
-							kpiResults = scanTextWithRegex(val, kpiResults)
+							scanTextWithRegex(val, kpiResults)
 						}
 					}
 				}
@@ -285,9 +285,9 @@ func (cfg *apiConfig) parseWithSharedStringsTmpFile(zr *zip.Reader, kpiResults [
 							if len(parts) != 2 {
 								return fmt.Errorf("Invalid text format in sharedString tmp file: %w", err)
 							}
-							kpiResults = scanTextWithRegex(strings.TrimSpace(parts[1]), kpiResults)
+							scanTextWithRegex(strings.TrimSpace(parts[1]), kpiResults)
 						} else {
-							kpiResults = scanTextWithRegex(val, kpiResults)
+							scanTextWithRegex(val, kpiResults)
 						}
 					}
 				}

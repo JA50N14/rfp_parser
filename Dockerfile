@@ -32,7 +32,7 @@ COPY --from=builder /src/function .
 
 # Copy function metadata (host.json + function folders)
 COPY host.json ./
-COPY timer_function ./timer_function
+COPY rfp_parser_timer_function ./rfp_parser_timer_function
 
 # Set Azure Functions environment variables
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \

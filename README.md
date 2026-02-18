@@ -41,3 +41,10 @@ This application walks a Microsoft SharePoint Document Library to download docx,
 8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx, xlsx, and pdf files
 9. Run program from this applications root directory: go run ./
 
+## Microsoft Entra ID Cert/Private Key
+1. Generate a new public-private key pair
+  - See step #3 in "Installation" section
+2. Log into entra.microsoft.com
+3. "App registration" -> Select "rfp_parser" -> "Certificates & secrets"
+4. Upload the new public key/certificate and remove the old public key/certificate
+5. Place the public/certification and private keys locally on machine. Update the path to these keys in the .env file's GRAPH_PRIVATE_KEY_PATH and GRAPH_CERTIFICATE_PATH variables

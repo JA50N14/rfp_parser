@@ -32,5 +32,14 @@ COPY --from=builder /app/rfp-parser .
 # Make the binary executable
 RUN chmod +x rfp-parser
 
+# Copy the kpiDefinitions.json file
+COPY --from=builder /app/parser ./parser
+
+# Copy the .env file - ***Remove this line when creating a Production Image***
+COPY .env .env
+
 # Set the entrypoint (for Azure Functions Timer, this will be executed on container start)
 ENTRYPOINT ["./rfp-parser"]
+
+# To run this local docker image:
+# docker run -v /home/UserName/path/to/app.key:/app/app.key -v /home/UserName/path/to/app.crt:/app/app.crt rfp-parser:latest

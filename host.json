@@ -1,4 +1,16 @@
 {
   "version": "2.0",
-  "functionTimeout": "00:10:00"
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "function"
+    }
+  },
+  "functionTimeout": "00:10:00",
+  "extensions": {
+    "timers": {
+      "schedule": {
+        "timeZone": "America/Denver"
+      }
+    }
+  }
 }

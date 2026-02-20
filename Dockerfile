@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 
 # Stage 2 — Azure Functions Runtime
-FROM mcr.microsoft.com/azure-functions/go:4-go1.24
+FROM mcr.microsoft.com/azure-functions/base:4.0
 
 # Install poppler-utils for pdftotext
 RUN apt-get update && apt-get install -y poppler-utils ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -38,4 +38,9 @@ COPY rfp_parser_timer_function ./rfp_parser_timer_function
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
+# Copy the kpiDefinitions.json file
+COPY --from=builder /src/parser ./parser/
+
 # Azure Functions runtime starts automatically
+
+

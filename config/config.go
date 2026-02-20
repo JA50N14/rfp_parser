@@ -27,27 +27,27 @@ func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
 
 	bearerTokenSmartsheet := os.Getenv("SMARTSHEET_TOKEN")
 	if bearerTokenSmartsheet == "" {
-		return nil, fmt.Errorf("SMARTSHEET_TOKEN not set in .env")
+		return nil, fmt.Errorf("SMARTSHEET_TOKEN environment variable not set")
 	}
 
 	smartsheetUrl := os.Getenv("SMARTSHEET_URL")
 	if smartsheetUrl == "" {
-		return nil, fmt.Errorf("SMARTSHEET_URL .env variable not set")
+		return nil, fmt.Errorf("SMARTSHEET_URL environment variable not set")
 	}
 
 	graphSiteID := os.Getenv("GRAPH_SITE_ID")
 	if graphSiteID == "" {
-		return nil, fmt.Errorf("SHAREPOINT_SITE_ID .env variable not set")
+		return nil, fmt.Errorf("SHAREPOINT_SITE_ID environment variable not set")
 	}
 
 	graphLibraryName := os.Getenv("GRAPH_LIBRARY_NAME")
 	if graphLibraryName == "" {
-		return nil, fmt.Errorf("GRAPH_LIBRARY_NAME .env variable not set")
+		return nil, fmt.Errorf("GRAPH_LIBRARY_NAME environment variable not set")
 	}
 
 	graphDriveID := os.Getenv("GRAPH_DRIVE_ID")
 	if graphDriveID == "" {
-		return nil, fmt.Errorf("GRAPH_DRIVE_ID .env variable not set")
+		return nil, fmt.Errorf("GRAPH_DRIVE_ID environment variable not set")
 	}
 
 	extMap := map[string]string{

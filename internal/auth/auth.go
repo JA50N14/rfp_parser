@@ -29,12 +29,12 @@ type AccessTokenResponse struct {
 func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 	tenantID := os.Getenv("GRAPH_TENANT_ID")
 	if tenantID == "" {
-		return AccessTokenResponse{}, fmt.Errorf("GRAPH_TENANT_ID .env variable not set")
+		return AccessTokenResponse{}, fmt.Errorf("GRAPH_TENANT_ID environment variable not set")
 	}
 
 	clientID := os.Getenv("GRAPH_CLIENT_ID")
 	if clientID == "" {
-		return AccessTokenResponse{}, fmt.Errorf("GRAPH_CLIENT_ID .env variable not set")
+		return AccessTokenResponse{}, fmt.Errorf("GRAPH_CLIENT_ID environment variable not set")
 	}
 
 	jwt, err := makeJWT(tenantID, clientID)
@@ -126,7 +126,7 @@ func makeJWT(tenantID, clientID string) (string, error) {
 }
 
 func loadPrivateKey() (*rsa.PrivateKey, error) {
-	keyBytes, err := os.ReadFile(os.Getenv("GRAPH_PRIVATE_KEY_PATH"))
+	keyBytes, err := os.ReadFile(os.Getenv("GRAPH_PRIVATE_KEY"))
 	if err != nil {
 		return nil, fmt.Errorf("private key bytes returned: %w", err)
 	}
@@ -155,7 +155,7 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 }
 
 func computeX5TFromCert() (string, error) {
-	certPEM, err := os.ReadFile(os.Getenv("GRAPH_CERTIFICATE_PATH"))
+	certPEM, err := os.ReadFile(os.Getenv("GRAPH_CERTIFICATE"))
 	if err != nil {
 		return "", fmt.Errorf("could not read certificate from path: %w", err)
 	}

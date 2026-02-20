@@ -120,9 +120,11 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 			*walkCtx.Results = append(*walkCtx.Results, pkgResult)
 			parsed, err := graph.PatchPackageParsed(pkg.ID, walkCtx.Ctx, walkCtx.Cfg)
 			if err != nil {
+				walkCtx.Cfg.Logger.Info("Failed PATCH request for Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "error", err)
 				return err
 			}
 			if !parsed.Parsed {
+				walkCtx.Cfg.Logger.Info("Failed PATCH request for Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				return fmt.Errorf("unable to set Parsed = true: pkg ID: %s, pkg Name: %s", pkg.ID, pkg.Name)
 			}
 		}

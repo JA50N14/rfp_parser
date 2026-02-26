@@ -125,6 +125,7 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 			if !parsed.Parsed {
 				return fmt.Errorf("unable to set Parsed = true: pkg ID: %s, pkg Name: %s", pkg.ID, pkg.Name)
 			}
+			walkCtx.Cfg.Logger.Info("PATCH request successful", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 		}
 	}
 

@@ -42,4 +42,4 @@ COPY .env .env
 ENTRYPOINT ["./rfp-parser"]
 
 # To run this local docker image:
-# docker run -v /home/UserName/path/to/app.key:/app/app.key -v /home/UserName/path/to/app.crt:/app/app.crt rfp-parser:latest
+# docker run -d --name rfp-parser-test-image -v $(pwd)/certs:/app/certs:ro rfp-parser-test-image:latest

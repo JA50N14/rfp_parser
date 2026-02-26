@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
-	"encoding/json"
-	"log"
 	"os"
-	"fmt"
 
 	"github.com/JA50N14/rfp_parser/config"
 	"github.com/JA50N14/rfp_parser/target"
@@ -37,15 +37,14 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-
 func timerHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	var payload TimerPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		log.Println("Failed to parse JSON:", err)
@@ -58,18 +57,17 @@ func timerHandler(w http.ResponseWriter, r *http.Request) {
 		payload.Data.ScheduleStatus.Next,
 		payload.Data.IsPastDue,
 	)
-	
+
 	err := runParser(r.Context())
 	if err != nil {
 		log.Println("Error ocurred parsing packages", err)
 		http.Error(w, "FAILED", http.StatusInternalServerError)
 		return
 	}
-	
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "OK")	
-}
 
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "OK")
+}
 
 func runParser(ctx context.Context) error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))

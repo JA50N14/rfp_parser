@@ -51,11 +51,13 @@ func PostToSmartsheets(smartsheetRows []Row, ctx context.Context, cfg *config.Ap
 	encoder := json.NewEncoder(reqBody)
 	err := encoder.Encode(smartsheetRows)
 	if err != nil {
+		cfg.Logger.Info("Failed to POST to smartsheets", "error", err)
 		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.SmartsheetUrl, reqBody)
 	if err != nil {
+		cfg.Logger.Info("Failed to POST to smartsheets", "error", err)
 		return err
 	}
 
@@ -64,14 +66,17 @@ func PostToSmartsheets(smartsheetRows []Row, ctx context.Context, cfg *config.Ap
 
 	resp, err := cfg.Client.Do(req)
 	if err != nil {
+		cfg.Logger.Info("Failed to POST to smartsheets", "error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
+		cfg.Logger.Info("Failed to POST to smartsheets", "error", err)
 		return fmt.Errorf("smartsheet return status: %d, body: %s", resp.StatusCode, string(body))
 	}
+	
 	return nil
 }
 

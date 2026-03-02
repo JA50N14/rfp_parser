@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/JA50N14/rfp_parser/config"
-	"github.com/JA50N14/rfp_parser/target"
 	"github.com/JA50N14/rfp_parser/walk"
 	"github.com/joho/godotenv"
 )
@@ -71,6 +70,7 @@ func timerHandler(w http.ResponseWriter, r *http.Request) {
 
 func runParser(ctx context.Context) error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	if os.Getenv("ENV") == "local" {
 		if err := godotenv.Load(".env"); err != nil {
 			return fmt.Errorf("failed to load .env file: %w", err)
@@ -82,23 +82,11 @@ func runParser(ctx context.Context) error {
 		return fmt.Errorf("failed to initialize API config: %w", err)
 	}
 
-	results, err := walk.WalkDocLibrary(ctx, cfg)
+	err = walk.WalkDocLibrary(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("failed to walk document library: %w", err)
 	}
 
-	if len(results) == 0 {
-		cfg.Logger.Info("There are currently no new RFP Packages to process")
-		return nil
-	}
-
-	smartsheetRows := target.PrepareResultsForSmartsheetRows(results)
-
-	err = target.PostToSmartsheets(smartsheetRows, ctx, cfg)
-	if err != nil {
-		return fmt.Errorf("post to smartsheets failed: %w", err)
-	}
-
-	cfg.Logger.Info("RFP Package(s) successfully parsed and posted to smartsheets!")
+	cfg.Logger.Info("RFP Package(s) successfully processed!")
 	return nil
 }

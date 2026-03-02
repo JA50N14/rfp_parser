@@ -2,7 +2,6 @@ package walk
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -16,7 +15,6 @@ type WalkContext struct {
 	Ctx     context.Context
 	Now     time.Time
 	KPIDefs []parser.KPIDefinition
-	Results *[]PkgResult
 }
 
 type WalkPath struct {
@@ -33,36 +31,40 @@ const (
 	LevelDivision
 )
 
-func WalkDocLibrary(ctx context.Context, cfg *config.ApiConfig) ([]PkgResult, error) {
+const (
+	PkgStatusNew        = ""
+	PkgStatusInProgress = "InProgress"
+	PkgStatusComplete   = "Complete"
+	PkgStatusFailed     = "Failed"
+)
+
+func WalkDocLibrary(ctx context.Context, cfg *config.ApiConfig) error {
 	kpiDefs, err := parser.LoadKPIDefinitions()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	kpiDefs, err = parser.CompileRegexStrings(kpiDefs)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	results := make([]PkgResult, 0)
 
 	walkCtx := &WalkContext{
 		Cfg:     cfg,
 		Ctx:     ctx,
 		Now:     time.Now(),
 		KPIDefs: kpiDefs,
-		Results: &results,
 	}
 
 	rootDirs, err := graph.GetRootDirs(walkCtx.Ctx, walkCtx.Cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, dir := range rootDirs {
 		ok := isValidYear(dir.Name)
 		if !ok {
-			walkCtx.Cfg.Logger.Info("invalid year directory at root level", "year", dir.Name)
+			walkCtx.Cfg.Logger.Info("Invalid year directory at root level", "year", dir.Name)
 			continue
 		}
 
@@ -71,11 +73,11 @@ func WalkDocLibrary(ctx context.Context, cfg *config.ApiConfig) ([]PkgResult, er
 		}
 
 		if err := Walk(dir, LevelYear, path, walkCtx); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return results, nil
+	return nil
 }
 
 func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) error {
@@ -107,37 +109,67 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 			return err
 		}
 
-		pkgs, err = removeProcessedPackages(pkgs)
+		pkgs, err = removeCompleteAndInProgressPackages(pkgs)
 		if err != nil {
 			return err
 		}
 
 		for _, pkg := range pkgs {
+			walkCtx.Cfg.Logger.Info("Starting to process Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+
+			_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusInProgress, walkCtx.Ctx, walkCtx.Cfg)
+			if err != nil {
+				walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to InProgress failed", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				continue
+			}
+
 			pkgResult, err := ProcessRFPPackage(pkg, path, walkCtx)
 			if err != nil {
-				return err
+				walkCtx.Cfg.Logger.Info("Failed to Process Package", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusFailed, walkCtx.Ctx, walkCtx.Cfg)
+				if err != nil {
+					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				}
+				continue
 			}
-			*walkCtx.Results = append(*walkCtx.Results, pkgResult)
-			parsed, err := graph.PatchPackageParsed(pkg.ID, walkCtx.Ctx, walkCtx.Cfg)
+
+			if len(pkgResult.KPIResults) == 0 {
+				_, err = graph.PatchProcessStatus(pkg.ID, PkgStatusComplete, walkCtx.Ctx, walkCtx.Cfg)
+				if err != nil {
+					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				}
+				continue
+			}
+
+			rows := prepareResultsForSmartsheetRows(pkgResult)
+
+			err = postToSmartsheets(rows, walkCtx.Ctx, walkCtx.Cfg)
 			if err != nil {
-				walkCtx.Cfg.Logger.Info("Failed PATCH request for Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "error", err)
-				return err
+				walkCtx.Cfg.Logger.Info("POST request to smartsheet failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusFailed, walkCtx.Ctx, walkCtx.Cfg)
+				if err != nil {
+					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				}
+				continue
 			}
-			if !parsed.Parsed {
-				walkCtx.Cfg.Logger.Info("Failed PATCH request for Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
-				return fmt.Errorf("unable to set Parsed = true: pkg ID: %s, pkg Name: %s", pkg.ID, pkg.Name)
+
+			_, err = graph.PatchProcessStatus(pkg.ID, PkgStatusComplete, walkCtx.Ctx, walkCtx.Cfg)
+			if err != nil {
+				walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				continue
 			}
-			walkCtx.Cfg.Logger.Info("PATCH request successful", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+
+			walkCtx.Cfg.Logger.Info("Successfully processed Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 		}
 	}
 
 	return nil
 }
 
-func removeProcessedPackages(pkgs []graph.Package) ([]graph.Package, error) {
+func removeCompleteAndInProgressPackages(pkgs []graph.Package) ([]graph.Package, error) {
 	unprocessedPkgs := make([]graph.Package, 0)
 	for _, pkg := range pkgs {
-		if pkg.ListItem.Fields.Parsed == false {
+		if pkg.ListItem.Fields.ProcessStatus == PkgStatusNew || pkg.ListItem.Fields.ProcessStatus == PkgStatusFailed {
 			unprocessedPkgs = append(unprocessedPkgs, pkg)
 		}
 	}

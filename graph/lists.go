@@ -21,7 +21,7 @@ type Package struct {
 	ListItem struct {
 		ID          string `json:"id"`
 		Fields struct {
-			Parsed bool `json:"Parsed"`
+			ProcessStatus string `json:"ProcessStatus"`
 			ContentType string `json:"ContentType"`
 		} `json:"fields"`
 	} `json:"listItem"`

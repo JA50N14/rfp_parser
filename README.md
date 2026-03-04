@@ -1,10 +1,10 @@
 # Request For Proposal Parser
 
 ## Overview
-This application is designed for being hosted on Azure Functions. This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
+This application is designed as a Custom Container Azure Function. This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
 
 ## Installation
-1. Download the source code for this client app
+1. Download the source code for this application
 2. Create a SharePoint site. Within the Document Library have the following directory-sub directory set up:
   - Year (i.e. "2025", "2026", etc.)
     - Business Unit (i.e. "Facilities Management", etc.)
@@ -28,7 +28,7 @@ This application is designed for being hosted on Azure Functions. This applicati
 5. Create a Smartsheet with the following columns (in this order): Date Parsed, Year, Business Unit, Division, RFP Package Name, KPI Name, KPI Category, KPI Context  
 6. Create the following environment variables and add into Azure Key Vault:
   - SMARTSHEET_TOKEN - A Smartsheet access token that can be generated in Smartsheet
-  - SMARTSHEET_URL - The URL of the Smartsheet to push the KPI data into
+  - SMARTSHEET_URL - The URL of the Smartsheet to POST the KPI data into
   - GRAPH_PRIVATE_KEY_PATH - The path to where your Private Key is stored
   - GRAPH_CERTIFICATE_PATH - The path to where your certificate is stored
   - GRAPH_CLIENT_ID - The Client ID provided via Entra ID UI
@@ -37,10 +37,8 @@ This application is designed for being hosted on Azure Functions. This applicati
   - GRAPH_LIBRARY_NAME - The name of the Document Library to walk
   - GRAPH_DRIVE_ID - The Drive ID of the Document Library to walk
   - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
-7. In target/smartsheet_post.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
-8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx, xlsx and pdf files
-9. Run program from this applications root directory: go run ./
-
+7. In walk/result_to_smartsheet_transform.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
+8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx, xlsx, and pdf files
 
 ## Microsoft Entra ID Cert/Private Key
 1. Generate a public-private key pair
@@ -51,72 +49,40 @@ This application is designed for being hosted on Azure Functions. This applicati
 5. Upload the new private key into Azure Functions Key Vault
 
 ## Deployment to Azure Functions Instructions
-1. Build and Push Docker Image
-  - Create Azure Container Registry (ACR)
-  - Build your Image from project root
-    - docker build -t yourRegistryName.azurecr.io/rfp-parser:1.0.0 .
-      - Verify Dockerfile builds: go build -o function .
-        - Must match "defaultExecutablePath": "function"
-  - Push Image
-    - docker push yourRegistryName.azurecr.io/rfp-parser:1.0.0
-      - Image is now in Azure
-2. Create the Function App (Container-Based)
- - az functionapp plan create --name rfp-plan --resource-group Your_RG --location westus2 --sku EP1 --is-linux
- - Create Function App Using Container
-  - az functionapp create --name rfp-function --storage-account Your_storage --resource-group Your_RG --plan rfp-plan --deployment-container-image-name yourRegistryName.azurecr.io/rfp-parser:1.0.0 --functions-version 4
-3. Allow Function to Pull from ACR
-- Enable Managed Identity:
-  - az functionapp identity assign --name rfp-function --resource-group Your_RG
-  - Get the identity principal ID
-  - Then grant pull access:
-    - az role assignment create --assignee principal-id --scope $(az acr show --name yourRegistryName --query id --output tsv) --role AcrPull
-    - Now Azure can securely pull your container without storing credentials
-4. Configure App Settings (Environment Variables)
-- In Azure Portal: Function App -> Settings -> Configuration -> Application Settings
-  - Add:
-    - SMARTSHEET_TOKEN
-    - SMARTSHEET_URL
-    - GRAPH_CLIENT_ID
-    - GRAPH_TENANT_ID
-    - GRAPH_SITE_ID
-    - GRAPH_LIBRARY_NAME
-    - GRAPH_DRIVE_ID
-    - SHAREPOINT_LIST_ID
-5. Create Azure Key Vault
-- az keyvault create --name rfp-keyvault --resource-group Your_RG --location westus2
-- Add Secrets
-  - az keyvault secret set --vault-name rfp-keyvault --name GRAPH_PRIVATE_KEY --value "your-secret"
-  - az keyvault secret set --vault-name rfp-keyvault --name GRAPH_CERTIFICATE --value "your-secret"
-  - az keyvault secret set --vault-name rfp-keyvault --name SMARTSHEET_TOKEN --value "access-token"
-6. Give Function Access to Key Vault
-- Enable Managed Identity (should already be done)
-- az role assignment create --asignee principal-id --role "Key Vault Secrets User" --scope $(az keyvault show --name rfp-keyvault --query id --output tsv)
-  - Now your function can read secrets
-7. Reference Key Vault Secrets in App Settings
-- Add these secrets as value in: Function App -> Configuration -> Application Settings
-  - GRAPH_PRIVATE_KEY = @Microsoft.KeyVault(SecretUri=https://rfp-keyvault.vault.azure.net/secrets/GRAPH_PRIVATE_KEY/)
-  - GRAPH_CERTIFICATE = @Microsoft.KeyVault(SecretUri=https://rfp-keyvault.vault.azure.net/secrets/GRAPH_CERTIFICATE/)
-  - SMARTSHEET_TOKEN = @Microsoft.KeyVault(SecretUri=https://rfp-keyvault.vault.azure.net/secrets/SMARTSHEET_TOKEN/)
-8. Configure Timer Trigger
-- Should already have rfp_parser_timer_function/function.json and host.json
-9. Logging Configuration
-- Auzre Functions automatically streams to stdout and stderr
-- Go code uses slog.NewJSONHandler(os.Stdout, nil), so logging will work properly
-- Logs go to Application Insights and Log Streams
-- Enable Application Insights: Portal -> Function App -> Application Insights -> Turn On
-10. Verify Deployment
-- Go to Function App -> Functions
-  - Ensure your timer function appears
-- Check "Monitor" tab
-- Check logs
-  - Should see "Custom Handler listening on port ..."
-  - At trigger time, should see "Timer fired!"
+1. Login to Azure Portal
+  - Create a "Resource Group" - Will need at least "Contributor" permissions on this "Resource Group"
+  - At the "Subscription" level, ensure the following subscription "resource providers" are added:
+    - Microsoft.Web
+    - Microsoft.Storage
+    - Microsoft.ContainerRegistry
+    - Microsoft.KeyVault
+    - Microsoft.Insights
+    - Microsoft.ManagedIdentity
+2. Create a "Container Registry" and Push your Image to the registry
+3. Create a "Storage Account"
+  - Create a "resource", search "Storage Account"
+4. Create the Function App (Linux, Container-Based)
+  - Create a "resource", search "Function App"
+5. Enable Managed Identity
+6. Allow Function to Pull Image from Azure Container Registry (ACR)
+7. Configure application Settings (Environment Variables)
+8. Create Azur eKey Vault (for Secrets)
+  - Create a "resource", search "Key Vault"
+  - Grant Function App access
+  - Add secrets
+9. Configure Timer Trigger
+  - The function.json file is packaged in the container, Azure detects it automatically
+  - Go to Function App -> Functions - Should see your Timer function listed
+10. Logging
+  - Function App -> Logs -> Run - Should see your log.Printf() output appear
+11. Set Alerts
+  - Application Insights ->  Alerts -> Create alert rule -> Condition -> Exceptions > Count > Greater than 0
+  - Add Action Group (Email or Teams notification)
 
-
-## How this App Works on Azure Functions - Using a Custom Handler
+## How this App Works on Azure Functions
 1. Azure decides if it needs an instance
 - This happens when:
-	- Timer fires and no instance exists
+	- Timer fires and no instance exists (cold start)
 2. Container is created
 - Azure pulls your container image (if not cached)
 - Azure creates a container

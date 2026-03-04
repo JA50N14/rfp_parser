@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"os"
 	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 )
 

@@ -11,7 +11,6 @@ import (
 	"strings"
 )
 
-
 func XlsxParser(r io.ReaderAt, size int64, kpiResults []KPIResult) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {

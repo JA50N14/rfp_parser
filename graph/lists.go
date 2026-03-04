@@ -16,17 +16,16 @@ type Item struct {
 }
 
 type Package struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
 	ListItem struct {
-		ID          string `json:"id"`
+		ID     string `json:"id"`
 		Fields struct {
 			ProcessStatus string `json:"ProcessStatus"`
-			ContentType string `json:"ContentType"`
+			ContentType   string `json:"ContentType"`
 		} `json:"fields"`
 	} `json:"listItem"`
 }
-
 
 const graphBaseURL = "https://graph.microsoft.com/v1.0"
 const refreshTokenWindow = time.Minute * 5

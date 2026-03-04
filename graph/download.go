@@ -32,13 +32,13 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 			os.Remove(tmp.Name())
 		}
 	}()
-	
+
 	for {
 		req, err := createGetFileRequest(ctx, cfg, itemID, written)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		resp, err := cfg.Client.Do(req)
 		if err != nil {
 			if retries >= maxRetries {
@@ -69,7 +69,7 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 					fatal = true
 					return
 				}
-				
+
 				if cl := resp.ContentLength; cl >= 0 {
 					totalSize = cl
 				}
@@ -112,13 +112,13 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 				}
 
 				if n != (end - start + 1) {
-					err = fmt.Errorf("copied %d bytes, expected %d", n, end - start + 1)
+					err = fmt.Errorf("copied %d bytes, expected %d", n, end-start+1)
 					fatal = true
 					return
 				}
 				chunks++
 				retries = 0
-				
+
 			case http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound:
 				err = fmt.Errorf("download failed: %s", resp.Status)
 				fatal = true
@@ -129,7 +129,7 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 				}
 				err = fmt.Errorf("server error: %d", written)
 				fatal = true
-			
+
 			case http.StatusTooManyRequests:
 				if retries >= maxRetries {
 					err = fmt.Errorf("maximum (%d) retries exceeded", maxRetries)
@@ -144,7 +144,7 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 				}
 				select {
 				case <-time.After(retryAfter):
-				case <- ctx.Done():
+				case <-ctx.Done():
 					err = ctx.Err()
 					fatal = true
 					return
@@ -181,7 +181,6 @@ func GetFile(itemID string, ctx context.Context, cfg *config.ApiConfig) (*os.Fil
 	}
 }
 
-
 func createGetFileRequest(ctx context.Context, cfg *config.ApiConfig, itemID string, written int64) (*http.Request, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
@@ -201,14 +200,13 @@ func createGetFileRequest(ctx context.Context, cfg *config.ApiConfig, itemID str
 	return req, nil
 }
 
-
 func partialContentPreCopyCheckSum(rangeHeader string, written int64) (int64, int64, int64, error) {
 	var start, end, total int64
-	
+
 	if rangeHeader == "" {
 		return 0, 0, 0, fmt.Errorf("206 response missing Content-Range")
 	}
-	
+
 	_, err := fmt.Sscanf(rangeHeader, "bytes %d-%d/%d", &start, &end, &total)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("failed to parse Content-Range: %w", err)
@@ -225,8 +223,6 @@ func partialContentPreCopyCheckSum(rangeHeader string, written int64) (int64, in
 	if total <= 0 {
 		return 0, 0, 0, fmt.Errorf("invalid Content-Range total size: %d", total)
 	}
-	
+
 	return start, end, total, nil
 }
-
-

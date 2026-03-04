@@ -53,7 +53,7 @@ func NewApiConfig(logger *slog.Logger) (*ApiConfig, error) {
 	extMap := map[string]string{
 		".docx": ".docx",
 		".xlsx": ".xlsx",
-		".pdf": ".pdf",
+		".pdf":  ".pdf",
 	}
 
 	client := &http.Client{

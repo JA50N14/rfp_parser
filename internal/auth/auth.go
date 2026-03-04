@@ -41,7 +41,7 @@ func GetGraphAccessToken(client *http.Client) (AccessTokenResponse, error) {
 	if err != nil {
 		return AccessTokenResponse{}, fmt.Errorf("make JWT returned: %w", err)
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 )
 
-
 type Cell struct {
 	ColumnId int64  `json:"columnId"`
 	Value    string `json:"value"`
@@ -26,7 +25,7 @@ type Row struct {
 // 	colKPIContext     int64 = 4756959379804036
 // )
 
-//Test Smartsheet Column ID's
+// Test Smartsheet Column ID's
 const (
 	colDateParsed     int64 = 4915691982114692
 	colYear           int64 = 2663892168429444
@@ -37,7 +36,6 @@ const (
 	colKPICategory    int64 = 8293391702642564
 	colKPIContext     int64 = 975042308165508
 )
-
 
 func prepareResultsForSmartsheetRows(result PkgResult) []Row {
 	var smartsheetRows []Row

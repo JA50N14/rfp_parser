@@ -2,17 +2,17 @@ package parser
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"context"
 )
 
 func PdfParser(ctx context.Context, f *os.File, kpiResults []KPIResult) error {
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		return err
-	} 
+	}
 
 	cmd := exec.CommandContext(ctx, "pdftotext", "-", "-")
 	cmd.Stdin = f

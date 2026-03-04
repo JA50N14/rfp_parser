@@ -79,7 +79,6 @@ func extractSentence(text string, target *regexp.Regexp, boundary *regexp.Regexp
 	return text[leftIdx:rightIdx]
 }
 
-
 func CreatePkgResultForRFPPackage(kpiDefs []KPIDefinition) []KPIResult {
 	kpiResults := make([]KPIResult, 0, len(kpiDefs))
 

@@ -1,10 +1,13 @@
 # Request For Proposal Parser
 
 ## Overview
-This application is designed as a Custom Container Azure Function. This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
+This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data. This application is designed as a Custom Container Azure Function. 
 
-## Installation
-1. Download the source code for this application
+## Motivation
+Our organization wanted analytics into what is important to our clients (i.e. specific ISO certifications, specific programs in place, etc.). This program provides these important client analytics, so the leadership team can prioritize which certificates or programs to pursue. The overall purpose of this application is to provide analytics to better position the company to win bids.
+
+## 🚀 Quick Start
+1. Clone this repository to your local machine
 2. Create a SharePoint site. Within the Document Library have the following directory-sub directory set up:
   - Year (i.e. "2025", "2026", etc.)
     - Business Unit (i.e. "Facilities Management", etc.)
@@ -40,7 +43,7 @@ This application is designed as a Custom Container Azure Function. This applicat
 7. In walk/result_to_smartsheet_transform.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
 8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx, xlsx, and pdf files
 
-## Microsoft Entra ID Cert/Private Key
+## Upload Certificate & Private Key Instructions
 1. Generate a public-private key pair
   - See step #3 in "Installation" section
 2. Log into entra.microsoft.com
@@ -79,7 +82,7 @@ This application is designed as a Custom Container Azure Function. This applicat
   - Application Insights ->  Alerts -> Create alert rule -> Condition -> Exceptions > Count > Greater than 0
   - Add Action Group (Email or Teams notification)
 
-## How this App Works on Azure Functions
+## Usage (Azure Functions)
 1. Azure decides if it needs an instance
 - This happens when:
 	- Timer fires and no instance exists (cold start)
@@ -104,18 +107,11 @@ This application is designed as a Custom Container Azure Function. This applicat
 - Azure sends: POST http://localhost:{port}/ with the TimerTrigger payload
 - Your handler runs
 
-# Azure Function Plans
-- Consumption Plan: 1-10+ seconds (cold start)
-	- Scales to zero
-	- After idle period (usually 20 min) - Azure stops the container, memory wiped, next trigger causes cold start
-	- Execution timeout: 5 min (max 10 min)
-- Premium Plan: Usually 0 seconds (if pre-warmed)
-	- Container stays running, waits for next trigger, keeps memory in RAM, keeps HTTP server alive
-	- Cold starts only for first deployment and after manual restart
-	- Execution timeout: unlimited (configurable)
-- Basic/Dedicated Plan: Only on first deploy or restart
-	- Container stays alive, behaves like a normal always-on web app
-	- Cold starts happens only when app restarts, you redeploy
-	- Execution timeout: unlimited
+## Contributing
+- Clone the repo
+  - bash: git clone https://github.com/JA50N14/rfp_parser.git
+
+- Submit a pull request
+  - If you would like to contribute, please fork the repository and open a pull request to the 'main' branch.
 
 

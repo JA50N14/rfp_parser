@@ -3,8 +3,11 @@
 ## Overview
 This application walks a Microsoft SharePoint Document Library to download docx, xlsx, and pdf files within each RFP Package directory, parses them for KPI's, and then posts the data into Smartsheets. Within Smartsheets, you can easily create dashboards based off this data.
 
-## Installation
-1. Download the source code for this client app
+## Motivation
+Our organization wanted analytics into what is important to our clients (i.e. specific ISO certifications, specific programs in place, etc.). This program provides these important client analytics, so the leadership team can prioritize which certificates or programs to pursue. The overall purpose of this application is to provide analytics to better position the company to win bids.
+
+## 🚀 Quick Start
+1. Clone this repository to your local machine
 2. Create a SharePoint site. Within the Document Library have the following directory-sub directory set up:
   - Year (i.e. "2025", "2026", etc.)
     - Business Unit (i.e. "Facilities Management", etc.)
@@ -39,12 +42,20 @@ This application walks a Microsoft SharePoint Document Library to download docx,
   - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
 7. In target/smartsheet_post.go, update the const variables by entering the column ID's for each column in your smartsheet. Will need to obtain these column ID's using a curl request to your Smartsheet using the SMARTSHEET_TOKEN and SMARTSHEET_URL
 8. In parser/kpiDefinitions.json, update this file to include the KPI's you would like to parse for inside of docx, xlsx, and pdf files
-9. Run program from this applications root directory: go run ./
 
-## Microsoft Entra ID Cert/Private Key
+## Upload Certificate & Private Key Instructions
 1. Generate a new public-private key pair
   - See step #3 in "Installation" section
 2. Log into entra.microsoft.com
 3. "App registration" -> Select "rfp_parser" -> "Certificates & secrets"
 4. Upload the new public key/certificate and remove the old public key/certificate
 5. Place the public/certification and private keys locally on machine. Update the path to these keys in the .env file's GRAPH_PRIVATE_KEY_PATH and GRAPH_CERTIFICATE_PATH variables
+
+## Usage
+- Run program from this applications root directory: go run ./
+
+## Contributing
+- Clone the repo
+  - bash: git clone https://github.com/JA50N14/rfp_parser.git
+- Submit a pull request
+  - If you would like to contribute, please fork the repository and open a pull request to the 'main' branch.

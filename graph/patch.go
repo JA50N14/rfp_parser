@@ -3,27 +3,35 @@ package graph
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/JA50N14/rfp_parser/config"
 )
 
-
-type Parsed struct {
-	Parsed bool `json:"Parsed"`
+type ProcessStatus struct {
+	ProcessStatus string `json:"ProcessStatus"`
 }
 
-func PatchPackageParsed(itemID string, ctx context.Context, cfg *config.ApiConfig) (Parsed, error) {
+func PatchProcessStatus(itemID string, patchValue string, ctx context.Context, cfg *config.ApiConfig) (ProcessStatus, error) {
 	err := checkAccessTokenExpiry(cfg)
 	if err != nil {
-		return Parsed{}, err
+		return ProcessStatus{}, err
 	}
 
-	buildReq := func (ctx context.Context) (*http.Request, error) {
+	buildReq := func(ctx context.Context) (*http.Request, error) {
 		url := fmt.Sprintf("%s/sites/%s/drives/%s/items/%s/listItem/fields", graphBaseURL, cfg.GraphSiteID, cfg.GraphDriveID, itemID)
 
-		body := bytes.NewReader([]byte(`{"Parsed": true}`))
+		payload := map[string]string{
+			"ProcessStatus": patchValue,
+		}
+		b, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+
+		body := bytes.NewReader(b)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodPatch, url, body)
 		if err != nil {
@@ -37,9 +45,9 @@ func PatchPackageParsed(itemID string, ctx context.Context, cfg *config.ApiConfi
 		return req, nil
 	}
 
-	result, err := do[Parsed](ctx, cfg, buildReq)
+	result, err := do[ProcessStatus](ctx, cfg, buildReq)
 	if err != nil {
-		return Parsed{}, err
+		return ProcessStatus{}, err
 	}
 
 	return result, nil

@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/JA50N14/rfp_parser/config"
-	"github.com/JA50N14/rfp_parser/target"
 	"github.com/JA50N14/rfp_parser/walk"
 	"github.com/joho/godotenv"
 )
@@ -27,25 +26,13 @@ func main() {
 	}
 
 	ctx := context.Background()
-	results, err := walk.WalkDocLibrary(ctx, cfg)
+
+	err = walk.WalkDocLibrary(ctx, cfg)
 	if err != nil {
-		cfg.Logger.Error("failed to walk document library", "error", err)
+		logger.Error("failed to walk document library: %w", err)
 		os.Exit(1)
 	}
 
-	if len(results) == 0 {
-		cfg.Logger.Info("there are currently no new RFP Packages to process")
-		os.Exit(0)
-	}
-
-	smartsheetRows := target.PrepareResultsForSmartsheetRows(results)
-
-	err = target.PostToSmartsheets(smartsheetRows, ctx, cfg)
-	if err != nil {
-		cfg.Logger.Error("post to smartsheets failed", "error", err)
-		os.Exit(1)
-	}
-
-	cfg.Logger.Info("RFP Package(s) successfully parsed and posted to smartsheets")
+	cfg.Logger.Info("RFP Package(s) successfully processed!")
 	os.Exit(0)
 }

@@ -112,6 +112,6 @@ Our organization wanted analytics into what is important to our clients (i.e. sp
   - bash: git clone https://github.com/JA50N14/rfp_parser.git
 
 - Submit a pull request
-  - If you would like to contribute, please fork the repository and open a pull request to the 'main' branch.
+  - If you would like to contribute, please fork the repository and open a pull request to the 'azureFunctions' branch.
 
 

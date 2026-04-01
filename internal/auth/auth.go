@@ -126,14 +126,11 @@ func makeJWT(tenantID, clientID string) (string, error) {
 }
 
 func loadPrivateKey() (*rsa.PrivateKey, error) {
-	keyBytes, err := os.ReadFile(os.Getenv("GRAPH_PRIVATE_KEY"))
-	if err != nil {
-		return nil, fmt.Errorf("private key bytes returned: %w", err)
-	}
+	keyBytes := []byte(os.Getenv("GRAPH_PRIVATE_KEY"))
 
 	block, _ := pem.Decode(keyBytes)
 	if block == nil {
-		return nil, fmt.Errorf("invalid PEM file: %w", err)
+		return nil, fmt.Errorf("invalid PEM file")
 	}
 
 	switch block.Type {
@@ -155,10 +152,7 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 }
 
 func computeX5TFromCert() (string, error) {
-	certPEM, err := os.ReadFile(os.Getenv("GRAPH_CERTIFICATE"))
-	if err != nil {
-		return "", fmt.Errorf("could not read certificate from path: %w", err)
-	}
+	certPEM := []byte(os.Getenv("GRAPH_CERTIFICATE"))
 
 	block, _ := pem.Decode(certPEM)
 	if block == nil || block.Type != "CERTIFICATE" {

@@ -1,4 +1,4 @@
-# Stage 1 — Build the Go function
+# Stage 1 — Build the Go app
 FROM golang:1.24.1-bookworm AS builder
 
 WORKDIR /src
@@ -10,38 +10,30 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
+# Copy all source code
 COPY . .
 
-# Build Linux binary (Azure runs Linux)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o function
+# Build the Go binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o parserbinary
 
+# Stage 2 — Minimal runtime
+FROM debian:bookworm-slim
 
-# Stage 2 — Azure Functions Runtime
-FROM mcr.microsoft.com/azure-functions/base:4.0
+WORKDIR /app
 
-# Install poppler-utils for pdftotext
+# Install system dependencies
 RUN apt-get update && apt-get install -y poppler-utils ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Set working directory required by Azure Functions
-WORKDIR /home/site/wwwroot
+# Copy the binary
+COPY --from=builder /src/parserbinary ./parserbinary
 
-# Copy built binary from builder stage
-COPY --from=builder /src/function .
-
-# Copy function metadata (host.json + function folders)
-COPY host.json ./
-COPY rfp_parser_timer_function ./rfp_parser_timer_function
-
-# Set Azure Functions environment variables
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
-
-# Copy the kpiDefinitions.json file
+# Copy the parser folder (so kpiDefinitions.json is available)
 COPY --from=builder /src/parser ./parser/
 
-# Azure Functions runtime starts automatically
+# Make sure the binary is executable
+RUN chmod +x ./parserbinary
 
+# Run the binary
+CMD ["./parserbinary"]
 
 

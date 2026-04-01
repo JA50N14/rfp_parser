@@ -72,8 +72,3 @@ func DocxParser(r io.ReaderAt, size int64, kpiResults []KPIResult) error {
 	}
 	return nil
 }
-
-//word/document.xml file:
-//<w:p> = paragraph
-//<w:r> = run (chunk of text with consistent formatting)
-//<w:t> = the actual text node

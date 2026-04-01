@@ -206,7 +206,7 @@ Before creating a Container App Job resource, you need the following Azure resou
 3. "App registration" -> Select "rfp_parser" -> "Certificates & secrets"
 4. Upload the new public key/certificate and remove the old public key/certificate
 5. Update the GRAPH_PRIVATE_KEY environment variable with the new private key
-6. Create a new docker image, push to the Azure Container Registry, and ensure the Azure Container App Job resource references the new docker image ##########################
+6. Create a new docker image, push to the Azure Container Registry, and ensure the Azure Container App Job resource references the new docker image
 
 
 ## Contributing

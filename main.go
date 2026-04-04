@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting main")
+	fmt.Println("Starting main()")
 	err := runParser(context.Background())
 	if err != nil {
 		log.Fatal(err)
@@ -21,7 +21,6 @@ func main() {
 }
 
 func runParser(ctx context.Context) error {
-	fmt.Println("Starting parser job")
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	logger.Info("Starting parser job")

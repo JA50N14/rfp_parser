@@ -27,8 +27,9 @@ RUN apt-get update && apt-get install -y poppler-utils ca-certificates && rm -rf
 # Copy the binary
 COPY --from=builder /src/parserbinary ./parserbinary
 
-# Copy the parser folder (so kpiDefinitions.json is available)
-COPY --from=builder /src/parser ./parser/
+# Copy the kpiDefinitions.json
+RUN mkdir -p /app/parser
+COPY --from=builder /src/parser/kpiDefinitions.json /app/parser/kpiDefinitions.json
 
 # Make sure the binary is executable
 RUN chmod +x ./parserbinary

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/JA50N14/rfp_parser/config"
 	"github.com/JA50N14/rfp_parser/graph"

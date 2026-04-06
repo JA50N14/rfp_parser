@@ -2,7 +2,9 @@ package walk
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/JA50N14/rfp_parser/config"
@@ -168,13 +170,30 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 
 func removeCompleteAndInProgressPackages(pkgs []graph.Package) ([]graph.Package, error) {
 	unprocessedPkgs := make([]graph.Package, 0)
+
 	for _, pkg := range pkgs {
-		if pkg.ListItem.Fields.ProcessStatus == PkgStatusNew || pkg.ListItem.Fields.ProcessStatus == PkgStatusFailed {
+		status := extractProcessStatus(pkg.ListItem.Fields.ProcessStatus)
+		normalized := strings.TrimSpace(status)
+
+		if normalized == PkgStatusNew || normalized == PkgStatusFailed {
+			fmt.Println(pkg.Name, ": Was added as RFP needing to be processed")
 			unprocessedPkgs = append(unprocessedPkgs, pkg)
 		}
 	}
 
 	return unprocessedPkgs, nil
+}
+
+func extractProcessStatus(raw interface{}) string {
+	switch v := raw.(type) {
+	case string:
+		return v
+	case map[string]interface{}:
+		if val, ok := v["Value"].(string); ok {
+			return val
+		}
+	}
+	return ""
 }
 
 func isValidYear(s string) bool {

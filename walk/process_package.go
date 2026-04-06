@@ -26,8 +26,6 @@ const (
 )
 
 func ProcessRFPPackage(pkg graph.Package, path WalkPath, walkCtx *WalkContext) (PkgResult, error) {
-	walkCtx.Cfg.Logger.Info("Processing Package", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
-	
 	kpiResults := parser.CreatePkgResultForRFPPackage(walkCtx.KPIDefs)
 
 	items, err := graph.GetItemSubDirs(pkg.ID, walkCtx.Ctx, walkCtx.Cfg)

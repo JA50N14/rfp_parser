@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
 )
 
 func DocxParser(r io.ReaderAt, size int64, kpiResults []KPIResult) error {

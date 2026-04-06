@@ -14,12 +14,11 @@ import (
 )
 
 type GraphListResponse[T any] struct {
-	Value []T `json:"value"`
+	Value    []T    `json:"value"`
 	NextLink string `json:"@odata.nextLink"`
 }
 
 const maxRetries = 5
-
 
 func do[T any](ctx context.Context, cfg *config.ApiConfig, buildReq func(ctx context.Context) (*http.Request, error)) (T, error) {
 	var zero T
@@ -84,12 +83,11 @@ func doOnce[T any](req *http.Request, cfg *config.ApiConfig) (T, bool, time.Dura
 	if err != nil {
 		return zero, false, retryAfter, fmt.Errorf("decode response: %w", err)
 	}
-	
+
 	return result, false, retryAfter, nil
-}  
+}
 
-
-//Pagination
+// Pagination
 func listAll[T any](ctx context.Context, cfg *config.ApiConfig, buildReq func(ctx context.Context) (*http.Request, error)) ([]T, error) {
 	var all []T
 
@@ -99,13 +97,13 @@ func listAll[T any](ctx context.Context, cfg *config.ApiConfig, buildReq func(ct
 			return nil, fmt.Errorf("sending request: %w", err)
 		}
 		all = append(all, page.Value...)
-		
+
 		if page.NextLink == "" {
 			return all, nil
 		}
 
 		nextLink := page.NextLink
-		prevBuild := buildReq 
+		prevBuild := buildReq
 
 		buildReq = func(ctx context.Context) (*http.Request, error) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, nextLink, nil)
@@ -134,8 +132,3 @@ func backoff(attempt int) time.Duration {
 
 	return d/2 + jitter
 }
-
-
-
-
-

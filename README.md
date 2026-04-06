@@ -21,40 +21,40 @@ Before beginning, ensure you have the following:
 
 ## 🚀 Setup - Part 1: Local Configuration
 1. Clone this repository to your local machine
-  - git clone https://github.com/JA50N14/rfp_parser.git
+- git clone https://github.com/JA50N14/rfp_parser.git
 
 2. Create a SharePoint Site & Library
-  - Within the Document Library have the following directory tree set up:
-  Year (e.g., 2025, 2026)
-  └─ Business Unit (e.g., "Facilities Management")
-      └─ Division (e.g., "FM East", "FM West")
-          └─ RFP Packages (directories representing each RFP Package)
- 
-  - Add a dropdown column named ProcessStatus with options:
-    - InProgress
-    - Complete
-    - Failed
+- Within the Document Library have the following directory tree set up:
+Year (e.g., 2025, 2026)
+└─ Business Unit (e.g., "Facilities Management")
+    └─ Division (e.g., "FM East", "FM West")
+        └─ RFP Packages (directories representing each RFP Package)
+
+- Add a dropdown column named ProcessStatus with options:
+  - InProgress
+  - Complete
+  - Failed
 
 3. Generate Private Key & Certificate
-  - Generate Private Key:
-    - openssl genrsa -out graph-app.key 2048
-  - Generate self-signed certificate:
-    - openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
-      - Common Name (CN): rfp_parser
-  - graph-app.key is private and must be kept secret.
-  - graph-app.crt is the public certificate uploaded to Entra ID.
+- Generate Private Key:
+  - openssl genrsa -out graph-app.key 2048
+- Generate self-signed certificate:
+  - openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
+    - Common Name (CN): rfp_parser
+- graph-app.key is private and must be kept secret.
+- graph-app.crt is the public certificate uploaded to Entra ID.
 
 4. Register Client App in Entra ID
-  - Go to: https://entra.microsoft.com/
-  - Register a new application:
-    - App registration → obtain Client ID and Tenant ID
-  - Upload Certificate: 
-    - App registration -> your app -> Certificates & Secrets -> Certificates -> Upload certificate (graph-app.crt)
-  - Grant permissions:
-    - API permissions -> Add a permission -> Microsoft Graph -> Application permissions
-      - Select Sites.ReadWrite.All -> Grant admin consent (this step only requests permission, does not provide the permission)
-      - An Entra ID Admin must approve this permission for the specific SharePoint Site. Will need to provide the Entra ID Admin the SharePoint Site ID.
-      - App requires Microsoft Graph application permission Sites.Selected. Once consented, app must be granted read-write access. No user-delegated permissions needed.
+- Go to: https://entra.microsoft.com/
+- Register a new application:
+  - App registration → obtain Client ID and Tenant ID
+- Upload Certificate: 
+  - App registration -> your app -> Certificates & Secrets -> Certificates -> Upload certificate (graph-app.crt)
+- Grant permissions:
+  - API permissions -> Add a permission -> Microsoft Graph -> Application permissions
+    - Select Sites.ReadWrite.All -> Grant admin consent (this step only requests permission, does not provide the permission)
+    - An Entra ID Admin must approve this permission for the specific SharePoint Site. Will need to provide the Entra ID Admin the SharePoint Site ID.
+    - App requires Microsoft Graph application permission Sites.Selected. Once consented, app must be granted read-write access. No user-delegated permissions needed.
 
 5. Create Smartsheet
   - Columns (in order):

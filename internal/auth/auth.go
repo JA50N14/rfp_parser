@@ -88,6 +88,9 @@ func fetchAccessToken(ctx context.Context, jwt, tenantID, clientID string, clien
 		return AccessTokenResponse{}, fmt.Errorf("invalid token_type: %s", accessTokenResp.TokenType)
 	}
 
+	/////Print access token
+	fmt.Println(accessTokenResp.AccessToken)
+
 	return accessTokenResp, nil
 }
 
@@ -126,7 +129,7 @@ func makeJWT(tenantID, clientID string) (string, error) {
 }
 
 func loadPrivateKey() (*rsa.PrivateKey, error) {
-	keyBytes, err := os.ReadFile(os.Getenv("GRAPH_PRIVATE_KEY_PATH"))
+	keyBytes, err := os.ReadFile(os.Getenv("GRAPH_PRIVATE_KEY"))
 	if err != nil {
 		return nil, fmt.Errorf("private key bytes returned: %w", err)
 	}
@@ -155,7 +158,7 @@ func loadPrivateKey() (*rsa.PrivateKey, error) {
 }
 
 func computeX5TFromCert() (string, error) {
-	certPEM, err := os.ReadFile(os.Getenv("GRAPH_CERTIFICATE_PATH"))
+	certPEM, err := os.ReadFile(os.Getenv("GRAPH_CERTIFICATE"))
 	if err != nil {
 		return "", fmt.Errorf("could not read certificate from path: %w", err)
 	}

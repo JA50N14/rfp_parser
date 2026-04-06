@@ -25,10 +25,10 @@ Before beginning, ensure you have the following:
 
 2. Create a SharePoint Site & Library
   - Within the Document Library have the following directory tree set up:
-  Year (e.g., 2025, 2026)
-  └─ Business Unit (e.g., "Facilities Management")
-      └─ Division (e.g., "FM East", "FM West")
-          └─ RFP Packages (directories representing each RFP Package)
+    - Year (e.g., 2025, 2026)
+      - Business Unit (e.g., "Facilities Management")
+        - Division (e.g., "FM East", "FM West")
+          - RFP Packages (directories representing each RFP Package)
 
   - Add a dropdown column named ProcessStatus with options:
     - InProgress
@@ -112,50 +112,50 @@ Before beginning, ensure you have the following:
   - Additional variables will be set throughout this process
 
 4. Create Log Analytics Workspace
-  az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --location $LOCATION
+  - cmd: az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --location $LOCATION
   - This enables persistent log storage for container execution logs.
 
 5. Create Container Apps Environment
   - Get Log Analytic Credentials:
-  LOG_ANALYTICS_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query customerId -o tsv)
-  LOG_ANALYTICS_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query primarySharedKey -o tsv)
+    - cmd: LOG_ANALYTICS_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query customerId -o tsv)
+    - cmd: LOG_ANALYTICS_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query primarySharedKey -o tsv)
   - Create the Container Apps Environment:
-  az containerapp env create --name $ENV_NAME --resource-group $RG --location $LOCATION --logs-workspace-id $LOG_ANALYTICS_ID --logs-workspace-key $LOG_ANALYTICS_KEY
+    - cmd: az containerapp env create --name $ENV_NAME --resource-group $RG --location $LOCATION --logs-workspace-id $LOG_ANALYTICS_ID --logs-workspace-key $LOG_ANALYTICS_KEY
 
 6. Create Container Registry (ACR)
   - Create the ACR:
-  az acr create --resource-group $RG --name $ACR_NAME --sku $SKU --location $LOCATION --admin-enabled false
+    - cmd: az acr create --resource-group $RG --name $ACR_NAME --sku $SKU --location $LOCATION --admin-enabled false
   - Get the login server - This must match EXACTLY what you use in Docker tags and Container App Jobs image:
-  ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+    - cmd: ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
   - Login to ACR (for pushing image):
-  az acr login --name $ACR_NAME
+    - cmd: az acr login --name $ACR_NAME
   - Get ACR resource ID - Used later to allow the Container App Job to pull images securely:
-  ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
+    - cmd: ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
 
 7. Build and Push your Docker Image to ACR
   - Build Docker image:
-    docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
+    - cmd: docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
   - Push Docker image:
-    docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+    - cmd: docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
   - Explanation: We're building the Go binary and packaging it with runtime dependencies (like poppler-utils) into a container. Then we push the image to Azure Container Registry so the job can pull it.
 
 8. Create Container App Job
-  az containerapp job create --name $JOB --resource-group $RG --environment $ENV --trigger-type Schedule --cron-expression "$CRON_EXPR" --image mcr.microsoft.com/k8se/quickstart:latest --cpu $CPU --memory $MEMORY --replica-timeout $REPLICA_TIMEOUT --replica-retry-limit $REPLICA_RETRY_LIMIT --system-assigned
+  - cmd: az containerapp job create --name $JOB --resource-group $RG --environment $ENV --trigger-type Schedule --cron-expression "$CRON_EXPR" --image mcr.microsoft.com/k8se/quickstart:latest --cpu $CPU --memory $MEMORY --replica-timeout $REPLICA_TIMEOUT --replica-retry-limit $REPLICA_RETRY_LIMIT --system-assigned
   - Explanation: This creates a scheduled Azure Container App Job resource. It pulls the Docker image from ACR and sets up resource limits and retry behaviour.
 
 9. Assign AcrPull role
   - Get the job's system-assigned principal ID:
-  PRINCIPAL_ID=$(az containerapp job show --name $JOB --resource-group $RG --query identity.principalId -o tsv)
+    - cmd: PRINCIPAL_ID=$(az containerapp job show --name $JOB --resource-group $RG --query identity.principalId -o tsv)
   - Get the ACR resource ID:
-  ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
+    - cmd: ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
   - Assign AcrPull role:
-  az role assignment create --assignee $PRINCIPAL_ID --role AcrPull --scope $ACR_RESOURCE_ID
+    - cmd: az role assignment create --assignee $PRINCIPAL_ID --role AcrPull --scope $ACR_RESOURCE_ID
 
 10. Add Secrets to Container App Job
-  az containerapp job secret set --name $JOB --resource-group $RG --secrets graph-private-key="$GRAPH_PRIVATE_KEY" graph-certificate="$GRAPH_CERTIFICATE" smartsheet-token="$SMARTSHEET_TOKEN"
+  - cmd: az containerapp job secret set --name $JOB --resource-group $RG --secrets graph-private-key="$GRAPH_PRIVATE_KEY" graph-certificate="$GRAPH_CERTIFICATE" smartsheet-token="$SMARTSHEET_TOKEN"
 
 11. Set Environment Variables for Container App Job
-  az containerapp job env set --name $JOB --resource-group $RG --env-vars \ 
+  - cmd: az containerapp job env set --name $JOB --resource-group $RG --env-vars \ 
     GRAPH_PRIVATE_KEY=secretref:graph-private-key \
     GRAPH_CERTIFICATE=secretref:graph-certificate \
     SMARTSHEET_TOKEN=secretref:smartsheet-token \
@@ -169,47 +169,47 @@ Before beginning, ensure you have the following:
   - Explanation: Creating environment variables that will be availble to the container app.
 
 12. Start Manual Execution (testing)
-  EXECUTION=$(az containerapp job start --name $JOB --resource-group $RG --query name -o tsv)
+  - cmd: EXECUTION=$(az containerapp job start --name $JOB --resource-group $RG --query name -o tsv)
 
-  echo "Started execution: $EXECUTION"
+  - cmd: echo "Started execution: $EXECUTION"
   - Explanation: This triggers the job immediately, instead of waiting for the cron schedule. Good for testing. This command also captures the execution ID, which is used in the next step to view logs.
 
 13. View Logs
-  az containerapp job logs show --name $JOB --resource-group $RG --execution $EXECUTION --container $JOB --follow
+  - cmd: az containerapp job logs show --name $JOB --resource-group $RG --execution $EXECUTION --container $JOB --follow
 
 
 ## Maintenance - Viewing Logs in Log Analytics
 - Go to Log Analytic workspace resource -> Logs -> KQL mode
   - Application logs (parsed output):
-  ContainerAppConsoleLogs_CL where ContainerJobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
+    - cmd: ContainerAppConsoleLogs_CL where ContainerJobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
 
   - System logs (startup failures, container crashes, pull errors):
-  ContainerAppSystemLogs_CL where JobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
+    - cmd: ContainerAppSystemLogs_CL where JobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
 
 
 ## Maintenance - Updating Job with New Image Version
 1. Build new Docker image (v2, v3, ...)
   - Set your variables:
-ACR_LOGIN_SERVER=<your-acr-login-server>   # e.g., myregistry.azurecr.io
-IMAGE_NAME=rfp-parser
-IMAGE_TAG=v2
+    - ACR_LOGIN_SERVER=<your-acr-login-server>   # e.g., myregistry.azurecr.io
+    - IMAGE_NAME=rfp-parser
+    - IMAGE_TAG=v2
   - Build the Docker image:
-docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
+    - cmd: docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
 2. Login to Azure Container Registry
-az acr login --name <your-acr-name>
+  - cmd: az acr login --name <your-acr-name>
 3. Push image to ACR
-docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+  - cmd: docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
 4. Verify image is listed
-az acr repository show-tags --name <your-acr-name> --repository $IMAGE_NAME --output table
+  - cmd: az acr repository show-tags --name <your-acr-name> --repository $IMAGE_NAME --output table
 5. Update Container App Job to use new image
-az containerapp job update --name <job-name> --resource-group <rg-name> --image $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
+  - cmd: az containerapp job update --name <job-name> --resource-group <rg-name> --image $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
 
 
 ## Maintenance - Upload New Certificate & Private Key
 1. Generate a public-private key pair
-  - Command: openssl genrsa -out graph-app.key 2048
+  - cmd: openssl genrsa -out graph-app.key 2048
     - graph-app.key -> Private key (keep this secret)
-  - Command: openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
+  - cmd: openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
     - Prompted for fields: Common Name (CN) -> rfp_parser
 2. Login to entra.microsoft.com
 3. "App registration" -> Select "rfp_parser" -> "Certificates & secrets"
@@ -219,4 +219,4 @@ az containerapp job update --name <job-name> --resource-group <rg-name> --image 
 
 ## Contributing
 - Clone the repo
-  - bash: git clone https://github.com/JA50N14/rfp_parser.git
+  - cmd: git clone https://github.com/JA50N14/rfp_parser.git

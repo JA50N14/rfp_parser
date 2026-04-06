@@ -168,14 +168,31 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 
 func removeCompleteAndInProgressPackages(pkgs []graph.Package) ([]graph.Package, error) {
 	unprocessedPkgs := make([]graph.Package, 0)
+	
 	for _, pkg := range pkgs {
-		if pkg.ListItem.Fields.ProcessStatus == PkgStatusNew || pkg.ListItem.Fields.ProcessStatus == PkgStatusFailed {
+		status := extractProcessStatus(pkg.ListItem.Fields.ProcessStatus)
+		normalize := strings.TrimSpace(status)
+
+		if normalize == PkgStatusNew || normalize == PkgStatusFailed {
 			unprocessedPkgs = append(unprocessedPkgs, pkg)
 		}
 	}
 
 	return unprocessedPkgs, nil
 }
+
+func extractProcessStatus(raw interface{}) string {
+	switch v := raw.(type) {
+	case string:
+		return v
+	case map[string]interface{}:
+		if val, ok := v["Value"].(string); ok {
+			return val
+		}
+	}
+	return ""
+}
+
 
 func isValidYear(s string) bool {
 	year, err := strconv.Atoi(s)

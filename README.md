@@ -21,40 +21,40 @@ Before beginning, ensure you have the following:
 
 ## 🚀 Setup - Part 1: Local Configuration
 1. Clone this repository to your local machine
-- git clone https://github.com/JA50N14/rfp_parser.git
+  - git clone https://github.com/JA50N14/rfp_parser.git
 
 2. Create a SharePoint Site & Library
-- Within the Document Library have the following directory tree set up:
-Year (e.g., 2025, 2026)
-└─ Business Unit (e.g., "Facilities Management")
-    └─ Division (e.g., "FM East", "FM West")
-        └─ RFP Packages (directories representing each RFP Package)
+  - Within the Document Library have the following directory tree set up:
+  Year (e.g., 2025, 2026)
+  └─ Business Unit (e.g., "Facilities Management")
+      └─ Division (e.g., "FM East", "FM West")
+          └─ RFP Packages (directories representing each RFP Package)
 
-- Add a dropdown column named ProcessStatus with options:
-  - InProgress
-  - Complete
-  - Failed
+  - Add a dropdown column named ProcessStatus with options:
+    - InProgress
+    - Complete
+    - Failed
 
 3. Generate Private Key & Certificate
-- Generate Private Key:
-  - openssl genrsa -out graph-app.key 2048
-- Generate self-signed certificate:
-  - openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
-    - Common Name (CN): rfp_parser
-- graph-app.key is private and must be kept secret.
-- graph-app.crt is the public certificate uploaded to Entra ID.
+  - Generate Private Key:
+    - openssl genrsa -out graph-app.key 2048
+  - Generate self-signed certificate:
+    - openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
+      - Common Name (CN): rfp_parser
+  - graph-app.key is private and must be kept secret.
+  - graph-app.crt is the public certificate uploaded to Entra ID.
 
 4. Register Client App in Entra ID
-- Go to: https://entra.microsoft.com/
-- Register a new application:
-  - App registration → obtain Client ID and Tenant ID
-- Upload Certificate: 
-  - App registration -> your app -> Certificates & Secrets -> Certificates -> Upload certificate (graph-app.crt)
-- Grant permissions:
-  - API permissions -> Add a permission -> Microsoft Graph -> Application permissions
-    - Select Sites.ReadWrite.All -> Grant admin consent (this step only requests permission, does not provide the permission)
-    - An Entra ID Admin must approve this permission for the specific SharePoint Site. Will need to provide the Entra ID Admin the SharePoint Site ID.
-    - App requires Microsoft Graph application permission Sites.Selected. Once consented, app must be granted read-write access. No user-delegated permissions needed.
+  - Go to: https://entra.microsoft.com/
+  - Register a new application:
+    - App registration → obtain Client ID and Tenant ID
+  - Upload Certificate: 
+    - App registration -> your app -> Certificates & Secrets -> Certificates -> Upload certificate (graph-app.crt)
+  - Grant permissions:
+    - API permissions -> Add a permission -> Microsoft Graph -> Application permissions
+      - Select Sites.ReadWrite.All -> Grant admin consent (this step only requests permission, does not provide the permission)
+      - An Entra ID Admin must approve this permission for the specific SharePoint Site. Will need to provide the Entra ID Admin the SharePoint Site ID.
+      - App requires Microsoft Graph application permission Sites.Selected. Once consented, app must be granted read-write access. No user-delegated permissions needed.
 
 5. Create Smartsheet
   - Columns (in order):
@@ -83,31 +83,31 @@ Year (e.g., 2025, 2026)
 3. Set Environment Variables
   - Open a bash shell session - Need to run commands to create and configure Azure Resources.
   - Set Variables:
-    # Resource Identifiers
-    - RG="rfp-parser" # Resource Group
-    - ENV="managedenvironment-rfpparser" # Container Apps Envrionment name
-    - JOB="rfpparsercontainerappjob" # Name of your Container App Job
-    # Container Registry and Image
-    - IMAGE_NAME="rfp-parser" # Docker Image name
-    - IMAGE_TAG="v1" # Initial Docker version tag
-    # Resources for Container App Job
-    - CPU="0.5"
-    - MEMORY="1Gi"
-    - REPLICA_TIMEOUT="1800" # seconds
-    - REPLICA_RETRY_LIMIT="1"
-    # Cron schedule
-    - CRON_EXPR="0 1 * * 0" #Runs Sunday at 1AM
-    # Environment / Secrets
-    - SMARTSHEET_TOKEN - A Smartsheet access token that can be generated in Smartsheet
-    - SMARTSHEET_URL - The URL of the Smartsheet to POST the KPI data
-    - GRAPH_PRIVATE_KEY - Your Private Key
-    - GRAPH_CERTIFICATE - Your certificate
-    - GRAPH_CLIENT_ID - The Client ID provided via Entra ID UI
-    - GRAPH_TENANT_ID - The Tenant ID provided via Entra ID UI
-    - GRAPH_SITE_ID - The ID of the SharePoint Site where the Document Library to be walked resides
-    - GRAPH_LIBRARY_NAME - The name of the Document Library to walk
-    - GRAPH_DRIVE_ID - The Drive ID of the Document Library to walk
-    - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
+    - Resource Identifiers:
+      - RG="rfp-parser" # Resource Group
+      - ENV="managedenvironment-rfpparser" # Container Apps Envrionment name
+      - JOB="rfpparsercontainerappjob" # Name of your Container App Job
+    - Container Registry and Image:
+      - IMAGE_NAME="rfp-parser" # Docker Image name
+      - IMAGE_TAG="v1" # Initial Docker version tag
+    - Resources for Container App Job:
+      - CPU="0.5"
+      - MEMORY="1Gi"
+      - REPLICA_TIMEOUT="1800" # seconds
+      - REPLICA_RETRY_LIMIT="1"
+    - Cron schedule:
+      - CRON_EXPR="0 1 * * 0" #Runs Sunday at 1AM
+    - Environment / Secrets:
+      - SMARTSHEET_TOKEN - A Smartsheet access token that can be generated in Smartsheet
+      - SMARTSHEET_URL - The URL of the Smartsheet to POST the KPI data
+      - GRAPH_PRIVATE_KEY - Your Private Key
+      - GRAPH_CERTIFICATE - Your certificate
+      - GRAPH_CLIENT_ID - The Client ID provided via Entra ID UI
+      - GRAPH_TENANT_ID - The Tenant ID provided via Entra ID UI
+      - GRAPH_SITE_ID - The ID of the SharePoint Site where the Document Library to be walked resides
+      - GRAPH_LIBRARY_NAME - The name of the Document Library to walk
+      - GRAPH_DRIVE_ID - The Drive ID of the Document Library to walk
+      - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
   - Explanation: These variables keep commands short and easy to update.
   - Additional variables will be set throughout this process
 
@@ -116,39 +116,39 @@ Year (e.g., 2025, 2026)
   - This enables persistent log storage for container execution logs.
 
 5. Create Container Apps Environment
-  # Get Log Analytic Credentials
+  - Get Log Analytic Credentials:
   LOG_ANALYTICS_ID=$(az monitor log-analytics workspace show --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query customerId -o tsv)
   LOG_ANALYTICS_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --query primarySharedKey -o tsv)
-  # Create the Container Apps Environment
+  - Create the Container Apps Environment:
   az containerapp env create --name $ENV_NAME --resource-group $RG --location $LOCATION --logs-workspace-id $LOG_ANALYTICS_ID --logs-workspace-key $LOG_ANALYTICS_KEY
 
 6. Create Container Registry (ACR)
-  # Create the ACR
+  - Create the ACR:
   az acr create --resource-group $RG --name $ACR_NAME --sku $SKU --location $LOCATION --admin-enabled false
-  # Get the login server - This must match EXACTLY what you use in Docker tags and Container App Jobs image
+  - Get the login server - This must match EXACTLY what you use in Docker tags and Container App Jobs image:
   ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
-  # Login to ACR (for pushing image)
+  - Login to ACR (for pushing image):
   az acr login --name $ACR_NAME
-  # Get ACR resource ID - Used later to allow the Container App Job to pull images securely
+  - Get ACR resource ID - Used later to allow the Container App Job to pull images securely:
   ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
 
 7. Build and Push your Docker Image to ACR
-    # Build Docker image
+  - Build Docker image:
     docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
-    # Push Docker image
+  - Push Docker image:
     docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
-    - Explanation: We're building the Go binary and packaging it with runtime dependencies (like poppler-utils) into a container. Then we push the image to Azure Container Registry so the job can pull it.
+  - Explanation: We're building the Go binary and packaging it with runtime dependencies (like poppler-utils) into a container. Then we push the image to Azure Container Registry so the job can pull it.
 
 8. Create Container App Job
   az containerapp job create --name $JOB --resource-group $RG --environment $ENV --trigger-type Schedule --cron-expression "$CRON_EXPR" --image mcr.microsoft.com/k8se/quickstart:latest --cpu $CPU --memory $MEMORY --replica-timeout $REPLICA_TIMEOUT --replica-retry-limit $REPLICA_RETRY_LIMIT --system-assigned
   - Explanation: This creates a scheduled Azure Container App Job resource. It pulls the Docker image from ACR and sets up resource limits and retry behaviour.
 
 9. Assign AcrPull role
-# Get the job's system-assigned principal ID
+  - Get the job's system-assigned principal ID:
   PRINCIPAL_ID=$(az containerapp job show --name $JOB --resource-group $RG --query identity.principalId -o tsv)
-  # Get the ACR resource ID
+  - Get the ACR resource ID:
   ACR_RESOURCE_ID=$(az acr show --name $ACR_NAME --query id -o tsv)
-  # Assign AcrPull role
+  - Assign AcrPull role:
   az role assignment create --assignee $PRINCIPAL_ID --role AcrPull --scope $ACR_RESOURCE_ID
 
 10. Add Secrets to Container App Job
@@ -181,23 +181,19 @@ Year (e.g., 2025, 2026)
 ## Maintenance - Viewing Logs in Log Analytics
 - Go to Log Analytic workspace resource -> Logs -> KQL mode
   - Application logs (parsed output):
-  ContainerAppConsoleLogs_CL
-| where ContainerJobName_s == "rfpparsercontainerappjob"
-| sort by TimeGenerated desc
+  ContainerAppConsoleLogs_CL where ContainerJobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
 
   - System logs (startup failures, container crashes, pull errors):
-  ContainerAppSystemLogs_CL
-| where JobName_s == "rfpparsercontainerappjob"
-| sort by TimeGenerated desc
+  ContainerAppSystemLogs_CL where JobName_s == "rfpparsercontainerappjob" sort by TimeGenerated desc
 
 
 ## Maintenance - Updating Job with New Image Version
 1. Build new Docker image (v2, v3, ...)
-- Set your variables:
+  - Set your variables:
 ACR_LOGIN_SERVER=<your-acr-login-server>   # e.g., myregistry.azurecr.io
 IMAGE_NAME=rfp-parser
 IMAGE_TAG=v2
-- Build the Docker image:
+  - Build the Docker image:
 docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
 2. Login to Azure Container Registry
 az acr login --name <your-acr-name>

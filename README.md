@@ -1,7 +1,7 @@
 # Request For Proposal Parser
 
 ## Overview
-The RFP Parser is an application that traverses a Microsoft SharePoint Document Library, downloads .docx, .xlsx, and .pdf files within each Request for Proposal (RFP) package, extracts key performance indicators (KPIs), and posts the parsed data into Smartsheet. Within Smartsheet, dashboards can be easily created to visualize this data.
+The Request For Proposal (RFP) Parser is an application that traverses a Microsoft SharePoint Document Library, downloads .docx, .xlsx, and .pdf files within each RFP package, extracts key performance indicators (KPIs), and posts the parsed data into Smartsheet. Within Smartsheet, dashboards can be easily created to visualize this data.
 
 This application is designed to run on Azure Container App Job. Familiarity with software development and Azure is recommended for successful deployment.
 
@@ -21,11 +21,11 @@ Before beginning, ensure you have the following:
 
 ## 🚀 Setup - Part 1: Local Configuration
 1. Clone this repository to your local machine
-  - git clone https://github.com/JA50N14/rfp_parser.git
+  - cmd: git clone https://github.com/JA50N14/rfp_parser.git
 
 2. Create a SharePoint Site & Library
   - Within the Document Library have the following directory tree set up:
-    - Year (e.g., 2025, 2026)
+    - Year (e.g., 2026)
       - Business Unit (e.g., "Facilities Management")
         - Division (e.g., "FM East", "FM West")
           - RFP Packages (directories representing each RFP Package)
@@ -37,9 +37,9 @@ Before beginning, ensure you have the following:
 
 3. Generate Private Key & Certificate
   - Generate Private Key:
-    - openssl genrsa -out graph-app.key 2048
+    - cmd: openssl genrsa -out graph-app.key 2048
   - Generate self-signed certificate:
-    - openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
+    - cmd: openssl req -new -x509 -key graph-app.key -out graph-app.crt -days 365
       - Common Name (CN): rfp_parser
   - graph-app.key is private and must be kept secret.
   - graph-app.crt is the public certificate uploaded to Entra ID.
@@ -84,9 +84,9 @@ Before beginning, ensure you have the following:
   - Open a bash shell session - Need to run commands to create and configure Azure Resources.
   - Set Variables:
     - Resource Identifiers:
-      - RG="rfp-parser" # Resource Group
+      - RG="rfp-parser" # Resource Group name
       - ENV="managedenvironment-rfpparser" # Container Apps Envrionment name
-      - JOB="rfpparsercontainerappjob" # Name of your Container App Job
+      - JOB="rfpparsercontainerappjob" # Container App Job name
     - Container Registry and Image:
       - IMAGE_NAME="rfp-parser" # Docker Image name
       - IMAGE_TAG="v1" # Initial Docker version tag
@@ -109,7 +109,7 @@ Before beginning, ensure you have the following:
       - GRAPH_DRIVE_ID - The Drive ID of the Document Library to walk
       - SHAREPOINT_LIST_ID - The List ID of the Document Library to walk
   - Explanation: These variables keep commands short and easy to update.
-  - Additional variables will be set throughout this process
+  - Additional variables will be set throughout this process.
 
 4. Create Log Analytics Workspace
   - cmd: az monitor log-analytics workspace create --resource-group $RG --workspace-name $LOG_ANALYTICS_NAME --location $LOCATION
@@ -137,7 +137,7 @@ Before beginning, ensure you have the following:
     - cmd: docker build --no-cache -t $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG .
   - Push Docker image:
     - cmd: docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG
-  - Explanation: We're building the Go binary and packaging it with runtime dependencies (like poppler-utils) into a container. Then we push the image to Azure Container Registry so the job can pull it.
+  - Explanation: We're building the Go binary and packaging it with runtime dependencies (poppler-utils) into a container. Then we push the image to Azure Container Registry so the job can pull it.
 
 8. Create Container App Job
   - cmd: az containerapp job create --name $JOB --resource-group $RG --environment $ENV --trigger-type Schedule --cron-expression "$CRON_EXPR" --image mcr.microsoft.com/k8se/quickstart:latest --cpu $CPU --memory $MEMORY --replica-timeout $REPLICA_TIMEOUT --replica-retry-limit $REPLICA_RETRY_LIMIT --system-assigned
@@ -170,9 +170,8 @@ Before beginning, ensure you have the following:
 
 12. Start Manual Execution (testing)
   - cmd: EXECUTION=$(az containerapp job start --name $JOB --resource-group $RG --query name -o tsv)
-
   - cmd: echo "Started execution: $EXECUTION"
-  - Explanation: This triggers the job immediately, instead of waiting for the cron schedule. Good for testing. This command also captures the execution ID, which is used in the next step to view logs.
+  - Explanation: This triggers the job immediately, instead of waiting for the cron schedule. For testing purposes. This command also captures the execution ID, which is used in the next step to view logs.
 
 13. View Logs
   - cmd: az containerapp job logs show --name $JOB --resource-group $RG --execution $EXECUTION --container $JOB --follow

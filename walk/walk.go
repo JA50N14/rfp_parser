@@ -3,8 +3,8 @@ package walk
 import (
 	"context"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/JA50N14/rfp_parser/config"
 	"github.com/JA50N14/rfp_parser/graph"
@@ -65,7 +65,7 @@ func WalkDocLibrary(ctx context.Context, cfg *config.ApiConfig) error {
 	for _, dir := range rootDirs {
 		ok := isValidYear(dir.Name)
 		if !ok {
-			walkCtx.Cfg.Logger.Info("Invalid year directory at root level", "year", dir.Name)
+			walkCtx.Cfg.Logger.Warn("Invalid year directory at root level", "year", dir.Name)
 			continue
 		}
 
@@ -120,16 +120,16 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 
 			_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusInProgress, walkCtx.Ctx, walkCtx.Cfg)
 			if err != nil {
-				walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to InProgress failed", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				walkCtx.Cfg.Logger.Warn("PATCH request to set ProcessStatus to InProgress failed. Package skipped", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				continue
 			}
 
 			pkgResult, err := ProcessRFPPackage(pkg, path, walkCtx)
 			if err != nil {
-				walkCtx.Cfg.Logger.Info("Failed to Process Package", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				walkCtx.Cfg.Logger.Warn("Failed to Process Package", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusFailed, walkCtx.Ctx, walkCtx.Cfg)
 				if err != nil {
-					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+					walkCtx.Cfg.Logger.Warn("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				}
 				continue
 			}
@@ -137,7 +137,7 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 			if len(pkgResult.KPIResults) == 0 {
 				_, err = graph.PatchProcessStatus(pkg.ID, PkgStatusComplete, walkCtx.Ctx, walkCtx.Cfg)
 				if err != nil {
-					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+					walkCtx.Cfg.Logger.Warn("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				}
 				continue
 			}
@@ -146,17 +146,17 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 
 			err = postToSmartsheets(rows, walkCtx.Ctx, walkCtx.Cfg)
 			if err != nil {
-				walkCtx.Cfg.Logger.Info("POST request to smartsheet failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				walkCtx.Cfg.Logger.Warn("POST request to smartsheet failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				_, err := graph.PatchProcessStatus(pkg.ID, PkgStatusFailed, walkCtx.Ctx, walkCtx.Cfg)
 				if err != nil {
-					walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+					walkCtx.Cfg.Logger.Warn("PATCH request to set ProcessStatus to Failed failed. Need to manually set ProcessStatus to Failed.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				}
 				continue
 			}
 
 			_, err = graph.PatchProcessStatus(pkg.ID, PkgStatusComplete, walkCtx.Ctx, walkCtx.Cfg)
 			if err != nil {
-				walkCtx.Cfg.Logger.Info("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
+				walkCtx.Cfg.Logger.Warn("PATCH request to set ProcessStatus to Complete failed. Need to manually set ProcessStatus to Complete.", "error", err, "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division)
 				continue
 			}
 
@@ -169,7 +169,7 @@ func Walk(item graph.Item, level Level, path WalkPath, walkCtx *WalkContext) err
 
 func removeCompleteAndInProgressPackages(pkgs []graph.Package) ([]graph.Package, error) {
 	unprocessedPkgs := make([]graph.Package, 0)
-	
+
 	for _, pkg := range pkgs {
 		status := extractProcessStatus(pkg.ListItem.Fields.ProcessStatus)
 		normalize := strings.TrimSpace(status)
@@ -193,7 +193,6 @@ func extractProcessStatus(raw interface{}) string {
 	}
 	return ""
 }
-
 
 func isValidYear(s string) bool {
 	year, err := strconv.Atoi(s)

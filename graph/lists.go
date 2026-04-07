@@ -22,7 +22,7 @@ type Package struct {
 		ID     string `json:"id"`
 		Fields struct {
 			ProcessStatus interface{} `json:"ProcessStatus"`
-			ContentType   string `json:"ContentType"`
+			ContentType   string      `json:"ContentType"`
 		} `json:"fields"`
 	} `json:"listItem"`
 }

@@ -1,7 +1,6 @@
 package walk
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -34,7 +33,7 @@ func ProcessRFPPackage(pkg graph.Package, path WalkPath, walkCtx *WalkContext) (
 	}
 
 	for _, item := range items {
-		if err := walkRFPPackage(item, kpiResults, walkCtx); err != nil {
+		if err := walkRFPPackage(item, pkg, path, kpiResults, walkCtx); err != nil {
 			return PkgResult{}, err
 		}
 	}
@@ -53,56 +52,64 @@ func ProcessRFPPackage(pkg graph.Package, path WalkPath, walkCtx *WalkContext) (
 	return pkgResult, nil
 }
 
-func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *WalkContext) error {
+func walkRFPPackage(item graph.Item, pkg graph.Package, path WalkPath, kpiResults []parser.KPIResult, walkCtx *WalkContext) error {
 	ext := filepath.Ext(item.Name)
 
 	switch ext {
 	case docxExt:
 		f, err := graph.GetFile(item.ID, walkCtx.Ctx, walkCtx.Cfg)
 		if err != nil {
-			return err
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		defer f.Close()
 		defer os.Remove(f.Name())
 
 		info, err := f.Stat()
 		if err != nil {
-			return fmt.Errorf("unable to get file stats: %w", err)
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 
 		if err := parser.DocxParser(f, info.Size(), kpiResults); err != nil {
-			return fmt.Errorf("error parsing docx file: Item ID: %s, Name: %s, error: %w", item.ID, item.Name, err)
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		return nil
 
 	case xlsxExt:
 		f, err := graph.GetFile(item.ID, walkCtx.Ctx, walkCtx.Cfg)
 		if err != nil {
-			return err
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		defer f.Close()
 		defer os.Remove(f.Name())
 
 		info, err := f.Stat()
 		if err != nil {
-			return fmt.Errorf("unable to get file stats: %w", err)
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 
 		if err := parser.XlsxParser(f, info.Size(), kpiResults); err != nil {
-			return fmt.Errorf("error parsing xlsx file: Item ID: %s, Name: %s, error: %w", item.ID, item.Name, err)
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		return nil
 
 	case pdfExt:
 		f, err := graph.GetFile(item.ID, walkCtx.Ctx, walkCtx.Cfg)
 		if err != nil {
-			return err
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		defer f.Close()
 		defer os.Remove(f.Name())
 
 		if err := parser.PdfParser(walkCtx.Ctx, f, kpiResults); err != nil {
-			return fmt.Errorf("error parsing pdf file: Item ID: %s, Name: %s, error: %w", item.ID, item.Name, err)
+			walkCtx.Cfg.Logger.Warn("Unable to process file", "Package Name", pkg.Name, "Year", path.Year, "Business Unit", path.BusinessUnit, "Division", path.Division, "File Name", item.Name, "error", err)
+			return nil
 		}
 		return nil
 
@@ -113,7 +120,7 @@ func walkRFPPackage(item graph.Item, kpiResults []parser.KPIResult, walkCtx *Wal
 		}
 
 		for _, childItem := range childItems {
-			if err := walkRFPPackage(childItem, kpiResults, walkCtx); err != nil {
+			if err := walkRFPPackage(childItem, pkg, path, kpiResults, walkCtx); err != nil {
 				return err
 			}
 		}

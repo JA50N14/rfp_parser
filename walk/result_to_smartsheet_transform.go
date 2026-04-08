@@ -2,11 +2,12 @@ package walk
 
 import (
 	"fmt"
+	"strconv"
 )
 
 type Cell struct {
-	ColumnId int64  `json:"columnId"`
-	Value    string `json:"value"`
+	ColumnId int64       `json:"columnId"`
+	Value    interface{} `json:"value"`
 }
 
 type Row struct {
@@ -29,6 +30,12 @@ func prepareResultsForSmartsheetRows(result PkgResult) []Row {
 	var smartsheetRows []Row
 
 	for _, kpiResult := range result.KPIResults {
+		//convert Year to an int, else smartsheet inserts the year like this: '2026
+		yearInt, err := strconv.Atoi(result.Year)
+		if err != nil {
+			yearInt = 0
+		}
+
 		row := Row{
 			ToTop: true,
 			Cells: []Cell{
@@ -38,7 +45,7 @@ func prepareResultsForSmartsheetRows(result PkgResult) []Row {
 				},
 				{
 					ColumnId: colYear,
-					Value:    result.Year,
+					Value:    yearInt,
 				},
 				{
 					ColumnId: colBusinessUnit,
